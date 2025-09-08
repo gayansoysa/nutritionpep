@@ -47,7 +47,6 @@ export default async function DashboardLayout({
             </h1>
             <p className="text-muted-foreground text-sm mt-1">Track your nutrition journey</p>
           </div>
-          <ModeToggle />
         </div>
         
         {/* Desktop Tabs */}

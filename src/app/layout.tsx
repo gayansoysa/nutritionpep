@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ModeToggle } from "@/components/mode-toggle";
 
 import "./globals.css";
 
@@ -96,6 +97,7 @@ export default async function RootLayout({
                       Login
                     </a>
                   )}
+                  <ModeToggle />
                 </nav>
               </div>
             </header>

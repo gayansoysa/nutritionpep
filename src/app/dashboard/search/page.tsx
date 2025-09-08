@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { MagnifyingGlassIcon, CameraIcon } from "@radix-ui/react-icons";
+import { MagnifyingGlassIcon, CameraIcon, HeartIcon, PlusIcon } from "@radix-ui/react-icons";
 import AddItemForm from "../(components)/AddItemForm";
+import { FoodSearchSkeleton } from "@/components/ui/food-search-skeleton";
+import { SlideInFromBottom } from "@/components/ui/success-animation";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 type Food = {
   id: string;
@@ -35,8 +38,16 @@ export default function SearchPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState<Food[]>([]);
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
+  const [favoritesFoods, setFavoritesFoods] = useState<Food[]>([]);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
   
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowserClient();
+  
+  // Fetch user's favorites on component mount
+  useEffect(() => {
+    fetchUserFavorites();
+  }, []);
   
   // If barcode is provided in URL, search for it on load
   useEffect(() => {
@@ -44,6 +55,27 @@ export default function SearchPage() {
       searchByBarcode(barcodeParam);
     }
   }, [barcodeParam]);
+  
+  const fetchUserFavorites = async () => {
+    try {
+      const response = await fetch("/api/favorites", {
+        credentials: "include",
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.favorites) {
+        const favoriteIds = new Set<string>(data.favorites.map((fav: any) => fav.foods.id as string));
+        const favoriteFoods = data.favorites.map((fav: any) => fav.foods);
+        setUserFavorites(favoriteIds);
+        setFavoritesFoods(favoriteFoods);
+      }
+    } catch (error) {
+      console.error("Error fetching user favorites:", error);
+      // Don't show error toast for favorites, as it's not critical for search functionality
+    } finally {
+      setIsLoadingFavorites(false);
+    }
+  };
   
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,6 +194,128 @@ export default function SearchPage() {
         </CardContent>
       </Card>
       
+      {/* Favorites Loading State */}
+      {isLoadingFavorites && (
+        <Card className="glass-effect shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HeartIcon className="h-5 w-5 text-red-500" />
+              Your Favorites
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="p-3 border border-border/50 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <div className="h-4 bg-muted rounded w-32 mb-1"></div>
+                        <div className="h-3 bg-muted rounded w-20"></div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className="h-4 bg-muted rounded w-8 mb-1"></div>
+                          <div className="h-3 bg-muted rounded w-6"></div>
+                        </div>
+                        <div className="h-6 w-6 bg-muted rounded"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Favorites Section */}
+      {!isLoadingFavorites && favoritesFoods.length > 0 && (
+        <Card className="glass-effect shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HeartIcon className="h-5 w-5 text-red-500" />
+              Your Favorites
+              <span className="text-sm font-normal text-muted-foreground">
+                ({favoritesFoods.length})
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 max-h-96 overflow-y-auto">
+              {favoritesFoods.slice(0, 6).map((food, index) => (
+                <SlideInFromBottom key={food.id} delay={index * 0.05}>
+                  <div
+                    className="p-3 border border-border/50 rounded-lg cursor-pointer hover:bg-accent/30 hover:border-border transition-all duration-200 hover:shadow-sm"
+                    onClick={() => setSelectedFood(food)}
+                  >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="font-medium">{food.name}</div>
+                          {food.brand && (
+                            <div className="text-xs text-muted-foreground mt-1">{food.brand}</div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 ml-3">
+                          <div className="text-right">
+                            <div className="text-sm font-bold text-primary">
+                              {Math.round(food.nutrients_per_100g.calories_kcal)}
+                            </div>
+                            <div className="text-xs text-muted-foreground">kcal</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedFood(food);
+                            }}
+                            title="Quick Add to Diary"
+                          >
+                            <PlusIcon className="h-3 w-3" />
+                          </Button>
+                          <FavoriteButton
+                            foodId={food.id}
+                            foodName={food.name}
+                            isFavorite={true}
+                            size="sm"
+                            variant="ghost"
+                            onToggle={(isFavorite) => {
+                              if (!isFavorite) {
+                                setUserFavorites(prev => {
+                                  const newSet = new Set(prev);
+                                  newSet.delete(food.id);
+                                  return newSet;
+                                });
+                                setFavoritesFoods(prev => prev.filter(f => f.id !== food.id));
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </SlideInFromBottom>
+              ))}
+            </div>
+            {favoritesFoods.length > 6 && (
+              <div className="mt-4 pt-3 border-t border-border/50 text-center">
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/dashboard/favorites">
+                    View All {favoritesFoods.length} Favorites
+                  </a>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Loading State */}
+      {isSearching && (
+        <FoodSearchSkeleton />
+      )}
+      
       {/* Results */}
       {results.length > 0 && !selectedFood && (
         <Card className="animate-bounce-in">
@@ -174,12 +328,11 @@ export default function SearchPage() {
           <CardContent>
             <div className="space-y-3">
               {results.map((food, index) => (
-                <div
-                  key={food.id}
-                  className="p-4 border border-border/50 rounded-xl cursor-pointer hover:bg-accent/50 hover:border-primary/30 transition-all duration-200 hover:shadow-md"
-                  onClick={() => setSelectedFood(food)}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
+                <SlideInFromBottom key={food.id} delay={index * 0.1}>
+                  <div
+                    className="p-4 border border-border/50 rounded-xl cursor-pointer hover:bg-accent/30 hover:border-border transition-all duration-200 hover:shadow-sm"
+                    onClick={() => setSelectedFood(food)}
+                  >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="font-semibold text-lg">{food.name}</div>
@@ -192,11 +345,33 @@ export default function SearchPage() {
                         </div>
                       )}
                     </div>
-                    <div className="text-right ml-4">
-                      <div className="text-lg font-bold text-primary">
-                        {Math.round(food.nutrients_per_100g.calories_kcal)}
+                    <div className="flex items-center gap-2 ml-4">
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-primary">
+                          {Math.round(food.nutrients_per_100g.calories_kcal)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">kcal/100g</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">kcal/100g</div>
+                      <FavoriteButton
+                        foodId={food.id}
+                        foodName={food.name}
+                        isFavorite={userFavorites.has(food.id)}
+                        size="sm"
+                        variant="ghost"
+                        onToggle={(isFavorite) => {
+                          if (isFavorite) {
+                            setUserFavorites(prev => new Set([...prev, food.id]));
+                            setFavoritesFoods(prev => [...prev, food]);
+                          } else {
+                            setUserFavorites(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(food.id);
+                              return newSet;
+                            });
+                            setFavoritesFoods(prev => prev.filter(f => f.id !== food.id));
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                   
@@ -217,7 +392,8 @@ export default function SearchPage() {
                       <span className="font-medium">{Math.round(food.nutrients_per_100g.fat_g)}g</span>
                     </div>
                   </div>
-                </div>
+                    </div>
+                </SlideInFromBottom>
               ))}
             </div>
           </CardContent>

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { FoodLoggedAnimation } from "@/components/ui/success-animation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +61,7 @@ export default function AddItemForm({
   defaultMeal?: "breakfast" | "lunch" | "dinner" | "snack";
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const supabase = createClientComponentClient();
   
   // Add "100g" as a default serving if no serving sizes are provided
@@ -150,10 +152,13 @@ export default function AddItemForm({
         throw new Error(errorData.error || "Failed to add item");
       }
       
-      toast.success(`Added ${food.name} to your diary`);
+      // Show success animation
+      setShowSuccessAnimation(true);
       
-      // Redirect to today view
-      window.location.href = "/dashboard/today";
+      // Redirect after animation
+      setTimeout(() => {
+        window.location.href = "/dashboard/today";
+      }, 2000);
     } catch (error: any) {
       console.error("Error adding item:", error);
       toast.error(error.message || "Failed to add item");
@@ -288,6 +293,15 @@ export default function AddItemForm({
           </form>
         </Form>
       </CardContent>
+      
+      <FoodLoggedAnimation
+        show={showSuccessAnimation}
+        foodName={food.name}
+        onComplete={() => {
+          setShowSuccessAnimation(false);
+          window.location.href = "/dashboard/today";
+        }}
+      />
     </Card>
   );
 }

@@ -32,13 +32,27 @@ export async function createSupabaseRouteHandlerClient() {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          try {
+            const cookie = cookieStore.get(name);
+            return cookie?.value;
+          } catch (error) {
+            console.error(`Error getting cookie ${name}:`, error);
+            return undefined;
+          }
         },
         set(name: string, value: string, options: any) {
-          cookieStore.set({ name, value, ...options })
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            console.error(`Error setting cookie ${name}:`, error);
+          }
         },
         remove(name: string, options: any) {
-          cookieStore.set({ name, value: '', ...options })
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            console.error(`Error removing cookie ${name}:`, error);
+          }
         },
       },
     }

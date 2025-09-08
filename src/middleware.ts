@@ -17,16 +17,19 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: any) {
+          // Update the request cookies
           request.cookies.set({
             name,
             value,
             ...options,
           })
+          // Create a new response with updated cookies
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Set the cookie on the response
           response.cookies.set({
             name,
             value,
@@ -34,16 +37,19 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: any) {
+          // Update the request cookies
           request.cookies.set({
             name,
             value: '',
             ...options,
           })
+          // Create a new response with updated cookies
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
           })
+          // Remove the cookie from the response
           response.cookies.set({
             name,
             value: '',
@@ -54,7 +60,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getSession()
+  // This will refresh the session if needed
+  const { data: { session } } = await supabase.auth.getSession()
 
   return response
 }
