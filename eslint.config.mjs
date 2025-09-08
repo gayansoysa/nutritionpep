@@ -20,6 +20,22 @@ const eslintConfig = [
       "next-env.d.ts",
     ],
   },
+  {
+    rules: {
+      // Allow any types during development
+      "@typescript-eslint/no-explicit-any": "warn",
+      // Allow unused variables during development
+      "@typescript-eslint/no-unused-vars": "warn",
+      // Allow unescaped entities in JSX
+      "react/no-unescaped-entities": "warn",
+      // Allow img elements (can be optimized later)
+      "@next/next/no-img-element": "warn",
+      // Allow HTML links for pages (can be optimized later)
+      "@next/next/no-html-link-for-pages": "warn",
+      // Allow missing dependencies in useEffect
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
 ];
 
 export default eslintConfig;

@@ -1,0 +1,243 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Pencil1Icon, 
+  TrashIcon, 
+  CheckCircledIcon, 
+  CrossCircledIcon,
+  MagnifyingGlassIcon
+} from "@radix-ui/react-icons";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+
+type Food = {
+  id: string;
+  name: string;
+  brand?: string;
+  category?: string;
+  barcode?: string;
+  verified: boolean;
+  source: string;
+};
+
+export default function FoodsList() {
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const supabase = createClientComponentClient();
+  
+  useEffect(() => {
+    fetchFoods();
+  }, []);
+  
+  const fetchFoods = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from("foods")
+        .select("id, name, brand, category, barcode, verified, source")
+        .order("name")
+        .limit(50);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setFoods(data || []);
+    } catch (error: any) {
+      console.error("Error fetching foods:", error);
+      toast.error("Failed to load foods");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      fetchFoods();
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.rpc("search_foods", {
+        q: searchQuery,
+        max_results: 50
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setFoods(data || []);
+    } catch (error: any) {
+      console.error("Search error:", error);
+      toast.error("Search failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const toggleVerified = async (id: string, currentValue: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("foods")
+        .update({ verified: !currentValue })
+        .eq("id", id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setFoods(foods.map(food => 
+        food.id === id ? { ...food, verified: !currentValue } : food
+      ));
+      
+      toast.success(`Food ${!currentValue ? "verified" : "unverified"}`);
+    } catch (error: any) {
+      console.error("Error updating food:", error);
+      toast.error("Failed to update food");
+    }
+  };
+  
+  const deleteFood = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this food?")) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from("foods")
+        .delete()
+        .eq("id", id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setFoods(foods.filter(food => food.id !== id));
+      toast.success("Food deleted");
+    } catch (error: any) {
+      console.error("Error deleting food:", error);
+      toast.error("Failed to delete food");
+    }
+  };
+  
+  return (
+    <div className="space-y-4">
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <Input
+          type="text"
+          placeholder="Search foods..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="flex-1"
+        />
+        <Button type="submit">
+          <MagnifyingGlassIcon className="mr-2 h-4 w-4" />
+          Search
+        </Button>
+      </form>
+      
+      {isLoading ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      ) : foods.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">No foods found</p>
+        </div>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Brand</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Barcode</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {foods.map((food) => (
+                <TableRow key={food.id}>
+                  <TableCell className="font-medium">{food.name}</TableCell>
+                  <TableCell>{food.brand || "-"}</TableCell>
+                  <TableCell>{food.category || "-"}</TableCell>
+                  <TableCell>{food.barcode || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{food.source}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {food.verified ? (
+                      <div className="flex items-center text-green-600">
+                        <CheckCircledIcon className="mr-1 h-4 w-4" />
+                        <span>Verified</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center text-amber-600">
+                        <CrossCircledIcon className="mr-1 h-4 w-4" />
+                        <span>Unverified</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => toggleVerified(food.id, food.verified)}
+                      >
+                        {food.verified ? (
+                          <CrossCircledIcon className="h-4 w-4" />
+                        ) : (
+                          <CheckCircledIcon className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        asChild
+                      >
+                        <a href={`/admin/foods/${food.id}`}>
+                          <Pencil1Icon className="h-4 w-4" />
+                        </a>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => deleteFood(food.id)}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}

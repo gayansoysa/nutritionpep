@@ -1,0 +1,36 @@
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Environment files
+.env*
+
+# Scripts (Node.js files)
+scripts/
+*.js
+!src/**/*.js
+!src/**/*.jsx
+
+# Temporary files
+apply-fix.js
+fix-ambiguous-id.js
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Supabase
+supabase/.branches
+supabase/.temp

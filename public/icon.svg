@@ -1,0 +1,42 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#10B981"/>
+  
+  <!-- Inner Circle -->
+  <circle cx="256" cy="256" r="200" fill="#059669" opacity="0.8"/>
+  
+  <!-- Apple Icon (Nutrition Symbol) -->
+  <g transform="translate(256, 256)">
+    <!-- Apple Body -->
+    <path d="M-40 -20 C-40 -60, -20 -80, 0 -80 C20 -80, 40 -60, 40 -20 C40 20, 20 60, 0 60 C-20 60, -40 20, -40 -20 Z" fill="#FFFFFF"/>
+    
+    <!-- Apple Leaf -->
+    <path d="M5 -75 C15 -85, 25 -80, 30 -70 C25 -75, 15 -75, 5 -75 Z" fill="#22C55E"/>
+    
+    <!-- Apple Stem -->
+    <rect x="-2" y="-85" width="4" height="10" fill="#8B5CF6" rx="2"/>
+    
+    <!-- Nutrition Stats Bars -->
+    <g transform="translate(-60, -40)">
+      <!-- Protein Bar -->
+      <rect x="0" y="0" width="30" height="8" fill="#3B82F6" rx="4"/>
+      <text x="35" y="6" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="10" font-weight="bold">P</text>
+      
+      <!-- Carbs Bar -->
+      <rect x="0" y="15" width="45" height="8" fill="#F59E0B" rx="4"/>
+      <text x="50" y="21" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="10" font-weight="bold">C</text>
+      
+      <!-- Fat Bar -->
+      <rect x="0" y="30" width="25" height="8" fill="#EF4444" rx="4"/>
+      <text x="30" y="36" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="10" font-weight="bold">F</text>
+    </g>
+    
+    <!-- Calorie Counter Circle -->
+    <circle cx="50" cy="30" r="25" fill="#FFFFFF" opacity="0.9"/>
+    <text x="50" y="25" text-anchor="middle" fill="#059669" font-family="Arial, sans-serif" font-size="12" font-weight="bold">CAL</text>
+    <text x="50" y="38" text-anchor="middle" fill="#059669" font-family="Arial, sans-serif" font-size="8">2000</text>
+  </g>
+  
+  <!-- App Name -->
+  <text x="256" y="450" text-anchor="middle" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="32" font-weight="bold">NutritionPep</text>
+</svg>
