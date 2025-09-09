@@ -7,6 +7,7 @@ import { PlusIcon, CalendarIcon, TargetIcon } from "@radix-ui/react-icons";
 import TodayClient from "./TodayClient";
 import MealSections from "./MealSections";
 import SmartSuggestions from "../(components)/SmartSuggestions";
+import { QuickAddFavorites } from "@/components/ui/quick-add-favorites";
 
 export default async function TodayPage() {
   const cookieStore = await cookies();
@@ -226,6 +227,9 @@ export default async function TodayPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Quick Add Favorites */}
+      <QuickAddFavorites />
 
       {/* Smart Suggestions Section */}
       <SmartSuggestions />

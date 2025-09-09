@@ -327,11 +327,8 @@ export default function InfiniteFoodSearch({
                           
                           <FavoriteButton
                             foodId={food.id}
-                            foodName={food.name}
-                            isFavorite={userFavorites.has(food.id)}
                             size="sm"
                             variant="ghost"
-                            onToggle={(isFavorite) => onToggleFavorite?.(food.id, isFavorite)}
                           />
                         </div>
                       </div>

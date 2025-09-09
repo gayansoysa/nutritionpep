@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/network-status";
+import { QueryProvider } from "@/lib/react-query/provider";
 
 import "./globals.css";
 
@@ -67,13 +68,14 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorBoundary>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ErrorBoundary>
             <FloatingNetworkStatus />
             <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
               <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
@@ -109,8 +111,9 @@ export default async function RootLayout({
               <main className="flex-1">{children}</main>
             </div>
             <Toaster />
-          </ErrorBoundary>
-        </ThemeProvider>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

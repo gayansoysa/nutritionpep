@@ -324,20 +324,8 @@ export default function SearchPage() {
                           </Button>
                           <FavoriteButton
                             foodId={food.id}
-                            foodName={food.name}
-                            isFavorite={true}
                             size="sm"
                             variant="ghost"
-                            onToggle={(isFavorite) => {
-                              if (!isFavorite) {
-                                setUserFavorites(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(food.id);
-                                  return newSet;
-                                });
-                                setFavoritesFoods(prev => prev.filter(f => f.id !== food.id));
-                              }
-                            }}
                           />
                         </div>
                       </div>
@@ -401,23 +389,8 @@ export default function SearchPage() {
                       </div>
                       <FavoriteButton
                         foodId={food.id}
-                        foodName={food.name}
-                        isFavorite={userFavorites.has(food.id)}
                         size="sm"
                         variant="ghost"
-                        onToggle={(isFavorite) => {
-                          if (isFavorite) {
-                            setUserFavorites(prev => new Set([...prev, food.id]));
-                            setFavoritesFoods(prev => [...prev, food]);
-                          } else {
-                            setUserFavorites(prev => {
-                              const newSet = new Set(prev);
-                              newSet.delete(food.id);
-                              return newSet;
-                            });
-                            setFavoritesFoods(prev => prev.filter(f => f.id !== food.id));
-                          }
-                        }}
                       />
                     </div>
                   </div>

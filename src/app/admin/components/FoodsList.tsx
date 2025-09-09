@@ -21,6 +21,7 @@ import {
 } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { PaginationWithInfo } from "@/components/ui/pagination";
 import { toast } from "@/lib/utils/toast";
 
 type Food = {
@@ -37,28 +38,41 @@ export default function FoodsList() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const itemsPerPage = 20;
   
   const supabase = createClientComponentClient();
   
   useEffect(() => {
     fetchFoods();
-  }, []);
+  }, [currentPage]);
   
   const fetchFoods = async () => {
     setIsLoading(true);
     
     try {
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      // Get total count
+      const { count } = await supabase
+        .from("foods")
+        .select("*", { count: "exact", head: true });
+      
+      // Get paginated data
       const { data, error } = await supabase
         .from("foods")
         .select("id, name, brand, category, barcode, verified, source")
         .order("name")
-        .limit(50);
+        .range(from, to);
         
       if (error) {
         throw error;
       }
       
       setFoods(data || []);
+      setTotalCount(count || 0);
     } catch (error: any) {
       console.error("Error fetching foods:", error);
       toast.error("Failed to load foods");
@@ -69,6 +83,7 @@ export default function FoodsList() {
   
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1); // Reset to first page on search
     
     if (!searchQuery.trim()) {
       fetchFoods();
@@ -80,7 +95,7 @@ export default function FoodsList() {
     try {
       const { data, error } = await supabase.rpc("search_foods", {
         q: searchQuery,
-        max_results: 50
+        max_results: itemsPerPage
       });
       
       if (error) {
@@ -88,6 +103,7 @@ export default function FoodsList() {
       }
       
       setFoods(data || []);
+      setTotalCount(data?.length || 0); // For search, we don't have exact count
     } catch (error: any) {
       console.error("Search error:", error);
       toast.error("Search failed");
@@ -239,6 +255,20 @@ export default function FoodsList() {
             </TableBody>
           </Table>
         </div>
+      )}
+      
+      {!isLoading && totalCount > itemsPerPage && (
+        <PaginationWithInfo
+          currentPage={currentPage}
+          totalPages={Math.ceil(totalCount / itemsPerPage)}
+          totalItems={totalCount}
+          itemsPerPage={itemsPerPage}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="mt-4"
+        />
       )}
     </div>
   );

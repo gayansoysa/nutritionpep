@@ -168,13 +168,26 @@ export async function GET(request: NextRequest) {
     }
 
     if (error) {
-      console.error('Error fetching recent foods:', error)
+      console.error('Error fetching recent foods:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        type,
+        mealType,
+        timeOfDay,
+        limit
+      })
       return NextResponse.json({ error: 'Failed to fetch recent foods' }, { status: 500 })
     }
 
     return NextResponse.json({ data: data || [] })
-  } catch (error) {
-    console.error('Unexpected error:', error)
+  } catch (error: any) {
+    console.error('Unexpected error in recent-foods GET:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -245,8 +258,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Unexpected error:', error)
+  } catch (error: any) {
+    console.error('Unexpected error in recent-foods POST:', {
+      message: error?.message,
+      stack: error?.stack,
+      name: error?.name
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

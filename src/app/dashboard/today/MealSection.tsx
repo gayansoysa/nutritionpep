@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -120,16 +121,28 @@ export default function MealSection({ mealType, entry, onItemRemoved }: MealSect
                 {Math.round(mealTotals.calories_kcal)} kcal
               </Badge>
             )}
-            <Button 
-              size="sm" 
-              variant="outline"
-              className="bg-white/80 hover:bg-white border-white/50"
-              asChild
-            >
-              <a href={`/dashboard/search?meal=${mealType}`}>
-                <PlusIcon className="h-4 w-4" />
-              </a>
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="bg-white/80 hover:bg-white border-white/50"
+                asChild
+              >
+                <a href={`/dashboard/bulk-add?meal=${mealType}`} title="Bulk Add Foods">
+                  <Package className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="bg-white/80 hover:bg-white border-white/50"
+                asChild
+              >
+                <a href={`/dashboard/search?meal=${mealType}`} title="Add Single Food">
+                  <PlusIcon className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
