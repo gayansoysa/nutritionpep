@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { MagnifyingGlassIcon, CameraIcon, HeartIcon, PlusIcon } from "@radix-ui/react-icons";
+import { MagnifyingGlassIcon, CameraIcon, HeartIcon, PlusIcon, SwitchIcon } from "@radix-ui/react-icons";
 import AddItemForm from "../(components)/AddItemForm";
 import { FoodSearchSkeleton } from "@/components/ui/food-search-skeleton";
 import { SlideInFromBottom } from "@/components/ui/success-animation";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { SearchErrorBoundary } from "@/components/ui/error-boundary";
+import { apiClient } from "@/lib/utils/api-client";
+import InfiniteFoodSearch from "../(components)/InfiniteFoodSearch";
 
 type Food = {
   id: string;
@@ -41,6 +44,7 @@ export default function SearchPage() {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoritesFoods, setFavoritesFoods] = useState<Food[]>([]);
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
+  const [useInfiniteScroll, setUseInfiniteScroll] = useState(true);
   
   const supabase = createSupabaseBrowserClient();
   
@@ -58,12 +62,12 @@ export default function SearchPage() {
   
   const fetchUserFavorites = async () => {
     try {
-      const response = await fetch("/api/favorites", {
-        credentials: "include",
+      const data = await apiClient.get("/api/favorites", {
+        showErrorToast: false, // Don't show error toast for favorites
+        retries: 2
       });
-      const data = await response.json();
       
-      if (response.ok && data.favorites) {
+      if (data.favorites) {
         const favoriteIds = new Set<string>(data.favorites.map((fav: any) => fav.foods.id as string));
         const favoriteFoods = data.favorites.map((fav: any) => fav.foods);
         setUserFavorites(favoriteIds);
@@ -119,10 +123,12 @@ export default function SearchPage() {
     setIsSearching(true);
     
     try {
-      const response = await fetch(`/api/barcode/lookup?code=${encodeURIComponent(barcode)}`);
-      const data = await response.json();
+      const data = await apiClient.get(`/api/barcode/lookup?code=${encodeURIComponent(barcode)}`, {
+        retries: 3,
+        showRetryToast: true
+      });
       
-      if (response.ok && data.food) {
+      if (data.food) {
         setResults([data.food]);
         
         // Auto-select the food if it's the only result
@@ -133,7 +139,6 @@ export default function SearchPage() {
       }
     } catch (error: any) {
       console.error("Barcode lookup error:", error);
-      toast.error("Barcode lookup failed");
       setResults([]);
     } finally {
       setIsSearching(false);
@@ -141,14 +146,56 @@ export default function SearchPage() {
   };
   
   return (
-    <div className="space-y-6">
+    <SearchErrorBoundary>
+      <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold gradient-text">Find Your Food</h1>
-        <p className="text-muted-foreground">Search our database of thousands of foods</p>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold gradient-text">Find Your Food</h1>
+            <p className="text-muted-foreground">Search our database of thousands of foods</p>
+          </div>
+          
+          <div className="flex items-center gap-2 text-sm">
+            <span className={!useInfiniteScroll ? "font-medium" : "text-muted-foreground"}>
+              Classic
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setUseInfiniteScroll(!useInfiniteScroll)}
+              className="p-1"
+            >
+              <SwitchIcon className={`h-5 w-5 ${useInfiniteScroll ? 'text-primary' : 'text-muted-foreground'}`} />
+            </Button>
+            <span className={useInfiniteScroll ? "font-medium" : "text-muted-foreground"}>
+              Infinite
+            </span>
+          </div>
+        </div>
       </div>
       
-      {/* Search Card */}
-      <Card className="glass-effect shadow-lg">
+      {/* Infinite Scroll Search */}
+      {useInfiniteScroll ? (
+        <InfiniteFoodSearch
+          onSelectFood={setSelectedFood}
+          userFavorites={userFavorites}
+          onToggleFavorite={(foodId, isFavorite) => {
+            if (isFavorite) {
+              setUserFavorites(prev => new Set([...prev, foodId]))
+            } else {
+              setUserFavorites(prev => {
+                const newSet = new Set(prev)
+                newSet.delete(foodId)
+                return newSet
+              })
+              setFavoritesFoods(prev => prev.filter(f => f.id !== foodId))
+            }
+          }}
+        />
+      ) : (
+        <>
+          {/* Classic Search Card */}
+          <Card className="glass-effect shadow-lg">
         <CardContent className="p-6">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="relative">
@@ -399,6 +446,8 @@ export default function SearchPage() {
           </CardContent>
         </Card>
       )}
+        </>
+      )}
       
       {selectedFood && (
         <div className="animate-bounce-in">
@@ -409,6 +458,7 @@ export default function SearchPage() {
           />
         </div>
       )}
-    </div>
+      </div>
+    </SearchErrorBoundary>
   );
 }

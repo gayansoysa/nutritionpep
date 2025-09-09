@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/network-status";
 
 import "./globals.css";
 
@@ -71,8 +73,10 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
-            <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
+          <ErrorBoundary>
+            <FloatingNetworkStatus />
+            <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
+              <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
               <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
@@ -97,13 +101,15 @@ export default async function RootLayout({
                       Login
                     </a>
                   )}
+                  <HeaderNetworkStatus />
                   <ModeToggle />
                 </nav>
               </div>
-            </header>
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
+              </header>
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </ErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

@@ -5,7 +5,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { toast } from "sonner";
+import { toast, toastHelpers } from "@/lib/utils/toast";
 import { FoodLoggedAnimation } from "@/components/ui/success-animation";
 
 import { Button } from "@/components/ui/button";
@@ -150,6 +150,22 @@ export default function AddItemForm({
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to add item");
+      }
+      
+      // Track recent food usage
+      try {
+        await fetch("/api/recent-foods", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            food_id: food.id,
+          }),
+        });
+      } catch (error) {
+        // Don't fail the main operation if recent foods tracking fails
+        console.warn("Failed to track recent food:", error);
       }
       
       // Show success animation

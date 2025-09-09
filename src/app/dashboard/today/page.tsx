@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PlusIcon, CalendarIcon, TargetIcon } from "@radix-ui/react-icons";
 import TodayClient from "./TodayClient";
 import MealSections from "./MealSections";
+import SmartSuggestions from "../(components)/SmartSuggestions";
 
 export default async function TodayPage() {
   const cookieStore = await cookies();
@@ -225,6 +226,9 @@ export default async function TodayPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Smart Suggestions Section */}
+      <SmartSuggestions />
 
       <MealSections entries={entries || []} />
     </div>

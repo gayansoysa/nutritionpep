@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { HeartIcon, HeartFilledIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { toast, toastHelpers } from "@/lib/utils/toast";
 import { motion } from "framer-motion";
 
 interface FavoriteButtonProps {
@@ -47,7 +47,7 @@ export function FavoriteButton({
         }
         
         setIsFavorite(false);
-        toast.success(`Removed ${foodName} from favorites`);
+        toastHelpers.favoriteRemoved(foodName);
         onToggle?.(false);
       } else {
         // Add to favorites
@@ -76,12 +76,12 @@ export function FavoriteButton({
         }
         
         setIsFavorite(true);
-        toast.success(`Added ${foodName} to favorites`);
+        toastHelpers.favoriteAdded(foodName);
         onToggle?.(true);
       }
     } catch (error: any) {
       console.error("Error toggling favorite:", error);
-      toast.error(error.message || "Failed to update favorites");
+      toastHelpers.apiError(error);
     } finally {
       setIsLoading(false);
     }
