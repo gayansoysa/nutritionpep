@@ -5,7 +5,8 @@ import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "sonner";
+import { CardSkeleton } from "@/components/ui/table-skeleton";
+import { toast } from "@/lib/utils/toast";
 import { CameraIcon } from "@radix-ui/react-icons";
 
 export default function ScanPage() {
@@ -198,9 +199,20 @@ export default function ScanPage() {
             <CardTitle>Last Scanned</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-mono text-lg">{barcode}</p>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-6 bg-muted rounded animate-pulse w-48" />
+                <div className="h-4 bg-muted rounded animate-pulse w-32" />
+              </div>
+            ) : (
+              <p className="font-mono text-lg">{barcode}</p>
+            )}
           </CardContent>
         </Card>
+      )}
+      
+      {isLoading && (
+        <CardSkeleton />
       )}
     </div>
   );

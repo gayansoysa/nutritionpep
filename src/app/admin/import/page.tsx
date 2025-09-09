@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { FoodImage } from "@/components/ui/food-image";
+import { toast } from "@/lib/utils/toast";
 import { MagnifyingGlassIcon, PlusIcon } from "@radix-ui/react-icons";
 
 type ImportedFood = {
@@ -202,15 +203,14 @@ export default function ImportPage() {
                 </p>
               </div>
               
-              {searchResult.image_url && (
-                <div className="flex justify-end">
-                  <img 
-                    src={searchResult.image_url} 
-                    alt={searchResult.name}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
-                </div>
-              )}
+              <div className="flex justify-end">
+                <FoodImage 
+                  src={searchResult.image_url} 
+                  alt={searchResult.name}
+                  width={96}
+                  height={96}
+                />
+              </div>
             </div>
 
             <div>

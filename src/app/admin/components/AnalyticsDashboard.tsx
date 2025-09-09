@@ -16,7 +16,8 @@ import {
   Cell,
   Legend
 } from "recharts";
-import { toast } from "sonner";
+import { StatCardSkeleton, CardSkeleton } from "@/components/ui/table-skeleton";
+import { toast } from "@/lib/utils/toast";
 
 export default function AnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -116,9 +117,7 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="h-[300px]">
               {isLoading ? (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">Loading...</p>
-                </div>
+                <CardSkeleton className="h-full border-0" />
               ) : signupData.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <p className="text-muted-foreground">No data available</p>
@@ -145,9 +144,7 @@ export default function AnalyticsDashboard() {
           <CardContent>
             <div className="h-[300px]">
               {isLoading ? (
-                <div className="h-full flex items-center justify-center">
-                  <p className="text-muted-foreground">Loading...</p>
-                </div>
+                <CardSkeleton className="h-full border-0" />
               ) : foodLogData.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <p className="text-muted-foreground">No data available</p>
@@ -186,9 +183,7 @@ export default function AnalyticsDashboard() {
         <CardContent>
           <div className="h-[300px]">
             {isLoading ? (
-              <div className="h-full flex items-center justify-center">
-                <p className="text-muted-foreground">Loading...</p>
-              </div>
+              <CardSkeleton className="h-full border-0" />
             ) : topFoods.length === 0 ? (
               <div className="h-full flex items-center justify-center">
                 <p className="text-muted-foreground">No data available</p>

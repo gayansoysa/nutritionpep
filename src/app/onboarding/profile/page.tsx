@@ -6,7 +6,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/utils/toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,9 +32,9 @@ const profileFormSchema = z.object({
     message: "Name must be at least 2 characters.",
   }),
   units: z.enum(["metric", "imperial"]),
-  locale: z.string().default("en-US"),
-  timezone: z.string().default("UTC"),
-  accepted_privacy: z.boolean().default(true),
+  locale: z.string(),
+  timezone: z.string(),
+  accepted_privacy: z.boolean(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -44,8 +44,8 @@ export default function ProfilePage() {
   const supabase = createClientComponentClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<any>({
-    // resolver: zodResolver(profileFormSchema),
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
     defaultValues: {
       full_name: "",
       units: "metric",

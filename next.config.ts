@@ -8,10 +8,19 @@ const nextConfig: NextConfig = {
   
   // Image optimization
   images: {
-    domains: ['utlurbqiknfctyfngjfl.supabase.co'], // Add your Supabase domain
+    domains: [
+      'utlurbqiknfctyfngjfl.supabase.co', // Supabase storage
+      'images.openfoodfacts.org', // Open Food Facts images
+      'static.openfoodfacts.org', // Open Food Facts static images
+    ],
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 7, // Cache images for 7 days
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    loader: 'default',
+    path: '/_next/image',
   },
   
   // Security headers

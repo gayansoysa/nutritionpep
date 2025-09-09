@@ -20,7 +20,8 @@ import {
   MagnifyingGlassIcon
 } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { toast } from "@/lib/utils/toast";
 
 type Food = {
   id: string;
@@ -157,9 +158,10 @@ export default function FoodsList() {
       </form>
       
       {isLoading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <TableSkeleton 
+          columns={["Name", "Brand", "Category", "Barcode", "Source", "Status", "Actions"]}
+          rows={8}
+        />
       ) : foods.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No foods found</p>

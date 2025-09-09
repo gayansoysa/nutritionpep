@@ -17,7 +17,8 @@ import {
   GearIcon
 } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
+import { toast } from "@/lib/utils/toast";
 import {
   Select,
   SelectContent,
@@ -119,9 +120,10 @@ export default function UsersList() {
   return (
     <div className="space-y-4">
       {isLoading ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+        <TableSkeleton 
+          columns={["User", "Email", "Role", "Last Sign In", "Created", "Actions"]}
+          rows={6}
+        />
       ) : users.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">No users found</p>
