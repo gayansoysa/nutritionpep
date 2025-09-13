@@ -39,23 +39,38 @@ type User = {
 export default function UsersList() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
   
+  const pageSize = 20;
   const supabase = createClientComponentClient();
   
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [currentPage]);
   
   const fetchUsers = async () => {
     setIsLoading(true);
     
     try {
-      // First get profiles
+      // First get total count
+      const { count, error: countError } = await supabase
+        .from("profiles")
+        .select("*", { count: 'exact', head: true });
+        
+      if (countError) {
+        throw countError;
+      }
+      
+      setTotalUsers(count || 0);
+      
+      // Then get profiles with pagination
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, full_name, role")
         .order("created_at", { ascending: false })
-        .limit(50);
+        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1);
         
       if (profilesError) {
         throw profilesError;
@@ -82,6 +97,7 @@ export default function UsersList() {
       });
       
       setUsers(combinedUsers);
+      setHasNextPage(profiles.length === pageSize);
     } catch (error: any) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");
@@ -181,6 +197,41 @@ export default function UsersList() {
               ))}
             </TableBody>
           </Table>
+        </div>
+      )}
+      
+      {/* Pagination Controls */}
+      {!isLoading && users.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, totalUsers)} of {totalUsers} users
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+              disabled={currentPage === 0}
+            >
+              Previous
+            </Button>
+            <div className="flex items-center space-x-1">
+              <span className="text-sm">Page {currentPage + 1}</span>
+              {totalUsers > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  of {Math.ceil(totalUsers / pageSize)}
+                </span>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={!hasNextPage}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

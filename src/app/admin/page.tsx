@@ -63,11 +63,18 @@ export default async function AdminPage() {
     .select("*", { count: "exact", head: true });
 
   return (
-    <div className="page-container py-6">
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+          <p className="text-gray-600 mt-1">Monitor your nutrition app's performance and data</p>
+        </div>
         <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <a href="/admin/external-apis">
+              External APIs
+            </a>
+          </Button>
           <Button variant="outline" asChild>
             <a href="/admin/import">
               Import from OFF
@@ -125,7 +132,6 @@ export default async function AdminPage() {
           <AnalyticsDashboard />
         </TabsContent>
       </Tabs>
-      </div>
     </div>
   );
 }

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { toast } from "@/lib/utils/toast";
+import { profileSchema, type ProfileFormData } from "@/lib/validations/schemas";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,25 +27,15 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-const profileFormSchema = z.object({
-  full_name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  units: z.enum(["metric", "imperial"]),
-  locale: z.string(),
-  timezone: z.string(),
-  accepted_privacy: z.boolean(),
-});
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+// Schema imported from centralized validations
 
 export default function ProfilePage() {
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
       full_name: "",
       units: "metric",
@@ -55,7 +45,7 @@ export default function ProfilePage() {
     },
   });
 
-  async function onSubmit(data: ProfileFormValues) {
+  async function onSubmit(data: ProfileFormData) {
     setIsSubmitting(true);
     
     try {
