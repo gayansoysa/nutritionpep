@@ -64,6 +64,18 @@ export default async function DashboardLayout({
             >
               History
             </a>
+            <a 
+              href="/dashboard/analytics"
+              className="py-3 px-1 border-b-2 border-transparent hover:border-primary/30 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
+            >
+              Analytics
+            </a>
+            <a 
+              href="/recipes"
+              className="py-3 px-1 border-b-2 border-transparent hover:border-primary/30 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
+            >
+              Recipes
+            </a>
           </nav>
         </div>
         

@@ -6,8 +6,10 @@ import {
   ClockIcon, 
   MagnifyingGlassIcon, 
   CameraIcon, 
-  GearIcon 
+  GearIcon,
+  BarChartIcon
 } from "@radix-ui/react-icons";
+import { Book } from "lucide-react";
 
 export default function BottomTabs() {
   const pathname = usePathname();
@@ -19,14 +21,14 @@ export default function BottomTabs() {
       icon: <ClockIcon className="h-5 w-5" />,
     },
     {
-      name: "History",
-      href: "/dashboard/history",
-      icon: <CalendarIcon className="h-5 w-5" />,
+      name: "Analytics",
+      href: "/dashboard/analytics",
+      icon: <BarChartIcon className="h-5 w-5" />,
     },
     {
-      name: "Scan",
-      href: "/dashboard/scan",
-      icon: <CameraIcon className="h-5 w-5" />,
+      name: "Recipes",
+      href: "/recipes",
+      icon: <Book className="h-5 w-5" />,
     },
     {
       name: "Search",
