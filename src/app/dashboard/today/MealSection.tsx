@@ -3,8 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CopyMealDialog } from "@/components/ui/copy-meal-dialog";
+import { MealTemplatesDialog } from "@/components/ui/meal-templates-dialog";
+import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
-import { Package } from "lucide-react";
+import { Package, Copy, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -41,6 +44,7 @@ interface MealSectionProps {
   mealType: MealType;
   entry?: DiaryEntry;
   onItemRemoved: () => void;
+  onMealUpdated?: () => void;
 }
 
 const mealLabels: Record<MealType, string> = {
@@ -64,8 +68,9 @@ const mealColors: Record<MealType, string> = {
   snack: "from-green-50 to-emerald-50 border-green-200"
 };
 
-export default function MealSection({ mealType, entry, onItemRemoved }: MealSectionProps) {
+export default function MealSection({ mealType, entry, onItemRemoved, onMealUpdated }: MealSectionProps) {
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
+  const deleteConfirmation = useDeleteConfirmation();
 
   const handleRemoveItem = async (itemId: string, item: DiaryItem) => {
     if (!entry) return;
@@ -194,7 +199,7 @@ export default function MealSection({ mealType, entry, onItemRemoved }: MealSect
                     size="icon"
                     className="h-8 w-8 hover:bg-destructive/10"
                     disabled={isRemoving === item.item_id}
-                    onClick={() => handleRemoveItem(item.item_id, item)}
+                    onClick={() => deleteConfirmation.confirm(() => handleRemoveItem(item.item_id, item))}
                   >
                     <TrashIcon className="h-4 w-4 text-destructive" />
                   </Button>
@@ -220,6 +225,15 @@ export default function MealSection({ mealType, entry, onItemRemoved }: MealSect
           </div>
         )}
       </CardContent>
+      
+      <DeleteConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        title="Remove food item?"
+        description="This will remove this food item from your meal. This action cannot be undone."
+        isLoading={deleteConfirmation.isLoading}
+      />
     </Card>
   );
 }

@@ -4,39 +4,37 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/recipes/[id]/rating - Get user's rating for recipe
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in GET /api/recipes/[id]/rating");
+    if (!user) {
+      console.log("No user found in GET /api/recipes/[id]/rating");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("GET recipe rating - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("GET recipe rating - User found:", user.id, "Recipe ID:", recipeId);
 
     const { data: rating, error } = await supabase
       .from("recipe_ratings")
       .select("*")
       .eq("recipe_id", recipeId)
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .single();
 
     if (error && error.code !== "PGRST116") { // PGRST116 = no rows returned
@@ -54,27 +52,25 @@ export async function GET(
 // POST /api/recipes/[id]/rating - Add or update recipe rating
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in POST /api/recipes/[id]/rating");
+    if (!user) {
+      console.log("No user found in POST /api/recipes/[id]/rating");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
@@ -89,7 +85,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    console.log("POST recipe rating - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("POST recipe rating - User found:", user.id, "Recipe ID:", recipeId);
 
     // Check if recipe exists and is not owned by the user
     const { data: recipe, error: recipeError } = await supabase
@@ -104,7 +100,7 @@ export async function POST(
     }
 
     // Users cannot rate their own recipes
-    if (recipe.user_id === session.user.id) {
+    if (recipe.user_id === user.id) {
       return NextResponse.json({ error: "Cannot rate your own recipe" }, { status: 403 });
     }
 
@@ -120,7 +116,7 @@ export async function POST(
       .from("recipe_ratings")
       .upsert({
         recipe_id: recipeId,
-        user_id: session.user.id,
+        user_id: user.id,
         rating,
         review: review || null,
         updated_at: new Date().toISOString()
@@ -146,39 +142,37 @@ export async function POST(
 // DELETE /api/recipes/[id]/rating - Delete recipe rating
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in DELETE /api/recipes/[id]/rating");
+    if (!user) {
+      console.log("No user found in DELETE /api/recipes/[id]/rating");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("DELETE recipe rating - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("DELETE recipe rating - User found:", user.id, "Recipe ID:", recipeId);
 
     const { error } = await supabase
       .from("recipe_ratings")
       .delete()
       .eq("recipe_id", recipeId)
-      .eq("user_id", session.user.id);
+      .eq("user_id", user.id);
 
     if (error) {
       console.error("Error deleting recipe rating:", error);

@@ -4,33 +4,31 @@ import { NextRequest, NextResponse } from "next/server";
 // PUT /api/recipes/ingredients/[id] - Update recipe ingredient
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in PUT /api/recipes/ingredients/[id]");
+    if (!user) {
+      console.log("No user found in PUT /api/recipes/ingredients/[id]");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const ingredientId = params.id;
+    const resolvedParams = await params;
+    const ingredientId = resolvedParams.id;
 
     if (!ingredientId) {
       return NextResponse.json({ error: "Ingredient ID is required" }, { status: 400 });
     }
 
-    console.log("PUT recipe ingredient - Session found for user:", session.user.id, "Ingredient ID:", ingredientId);
+    console.log("PUT recipe ingredient - User found:", user.id, "Ingredient ID:", ingredientId);
 
     // Check if user owns the recipe this ingredient belongs to
     const { data: ingredient, error: ingredientError } = await supabase
@@ -49,7 +47,7 @@ export async function PUT(
       return NextResponse.json({ error: "Ingredient not found" }, { status: 404 });
     }
 
-    if (ingredient.recipes.user_id !== session.user.id) {
+    if ((ingredient.recipes as any).user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to modify this ingredient" }, { status: 403 });
     }
 
@@ -121,33 +119,31 @@ export async function PUT(
 // DELETE /api/recipes/ingredients/[id] - Delete recipe ingredient
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in DELETE /api/recipes/ingredients/[id]");
+    if (!user) {
+      console.log("No user found in DELETE /api/recipes/ingredients/[id]");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const ingredientId = params.id;
+    const resolvedParams = await params;
+    const ingredientId = resolvedParams.id;
 
     if (!ingredientId) {
       return NextResponse.json({ error: "Ingredient ID is required" }, { status: 400 });
     }
 
-    console.log("DELETE recipe ingredient - Session found for user:", session.user.id, "Ingredient ID:", ingredientId);
+    console.log("DELETE recipe ingredient - User found:", user.id, "Ingredient ID:", ingredientId);
 
     // Check if user owns the recipe this ingredient belongs to
     const { data: ingredient, error: ingredientError } = await supabase
@@ -166,7 +162,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Ingredient not found" }, { status: 404 });
     }
 
-    if (ingredient.recipes.user_id !== session.user.id) {
+    if ((ingredient.recipes as any).user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to delete this ingredient" }, { status: 403 });
     }
 

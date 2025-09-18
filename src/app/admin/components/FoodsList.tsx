@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { PaginationWithInfo } from "@/components/ui/pagination";
+import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 import { toast } from "@/lib/utils/toast";
 
 type Food = {
@@ -40,9 +41,11 @@ export default function FoodsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [foodToDelete, setFoodToDelete] = useState<Food | null>(null);
   const itemsPerPage = 20;
   
   const supabase = createClientComponentClient();
+  const deleteConfirmation = useDeleteConfirmation();
   
   useEffect(() => {
     fetchFoods();
@@ -114,10 +117,21 @@ export default function FoodsList() {
   
   const toggleVerified = async (id: string, currentValue: boolean) => {
     try {
-      const { error } = await supabase
+      console.log("Attempting to update food:", id, "from", currentValue, "to", !currentValue);
+      
+      const { data, error } = await supabase
         .from("foods")
         .update({ verified: !currentValue })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
+        
+      console.log("Supabase response:", { data, error });
+      console.log("Error details:", {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      });
         
       if (error) {
         throw error;
@@ -130,26 +144,24 @@ export default function FoodsList() {
       toast.success(`Food ${!currentValue ? "verified" : "unverified"}`);
     } catch (error: any) {
       console.error("Error updating food:", error);
+      console.error("Error properties:", Object.getOwnPropertyNames(error));
+      console.error("Error JSON:", JSON.stringify(error));
       toast.error("Failed to update food");
     }
   };
   
-  const deleteFood = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this food?")) {
-      return;
-    }
-    
+  const deleteFood = async (food: Food) => {
     try {
       const { error } = await supabase
         .from("foods")
         .delete()
-        .eq("id", id);
+        .eq("id", food.id);
         
       if (error) {
         throw error;
       }
       
-      setFoods(foods.filter(food => food.id !== id));
+      setFoods(foods.filter(f => f.id !== food.id));
       toast.success("Food deleted");
     } catch (error: any) {
       console.error("Error deleting food:", error);
@@ -244,7 +256,10 @@ export default function FoodsList() {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => deleteFood(food.id)}
+                        onClick={() => {
+                          setFoodToDelete(food);
+                          deleteConfirmation.confirm(() => deleteFood(food));
+                        }}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </Button>
@@ -270,6 +285,16 @@ export default function FoodsList() {
           className="mt-4"
         />
       )}
+      
+      <DeleteConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        title="Delete food?"
+        description={foodToDelete ? `This will permanently delete "${foodToDelete.name}" from the food database. This action cannot be undone.` : undefined}
+        itemName={foodToDelete?.name}
+        isLoading={deleteConfirmation.isLoading}
+      />
     </div>
   );
 }

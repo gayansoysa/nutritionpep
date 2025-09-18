@@ -25,6 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 
 const servingSizeSchema = z.object({
   name: z.string().min(1, "Serving name is required"),
@@ -61,6 +62,7 @@ export default function EditFoodPage() {
   const supabase = createClientComponentClient();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const deleteConfirmation = useDeleteConfirmation();
 
   const form = useForm<any>({
     // resolver: zodResolver(foodFormSchema),
@@ -451,7 +453,7 @@ export default function EditFoodPage() {
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() => remove(index)}
+                      onClick={() => deleteConfirmation.confirm(() => remove(index))}
                     >
                       <TrashIcon className="h-4 w-4" />
                     </Button>
@@ -471,6 +473,12 @@ export default function EditFoodPage() {
           </div>
         </form>
       </Form>
+      
+      <DeleteConfirmationDialog
+        {...deleteConfirmation.dialogProps}
+        title="Remove Serving Size"
+        description="Are you sure you want to remove this serving size? This action cannot be undone."
+      />
     </div>
   );
 }

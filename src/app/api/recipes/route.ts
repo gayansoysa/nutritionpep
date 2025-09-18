@@ -6,18 +6,15 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in GET /api/recipes");
+    if (!user) {
+      console.log("No user found in GET /api/recipes");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,7 +31,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
-    console.log("GET recipes - Session found for user:", session.user.id);
+    console.log("GET recipes - User found:", user.id);
 
     const { data: recipes, error } = await supabase.rpc("search_recipes", {
       search_query: search,
@@ -71,22 +68,19 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in POST /api/recipes");
+    if (!user) {
+      console.log("No user found in POST /api/recipes");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("POST recipes - Session found for user:", session.user.id);
+    console.log("POST recipes - User found:", user.id);
 
     const body = await request.json();
     const {
@@ -118,7 +112,7 @@ export async function POST(request: NextRequest) {
     const { data: recipe, error: recipeError } = await supabase
       .from("recipes")
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         name,
         description,
         instructions,

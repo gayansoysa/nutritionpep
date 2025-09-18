@@ -4,33 +4,31 @@ import { NextRequest, NextResponse } from "next/server";
 // POST /api/recipe-collections/[id]/recipes - Add recipe to collection
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in POST /api/recipe-collections/[id]/recipes");
+    if (!user) {
+      console.log("No user found in POST /api/recipe-collections/[id]/recipes");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const collectionId = params.id;
+    const resolvedParams = await params;
+    const collectionId = resolvedParams.id;
 
     if (!collectionId) {
       return NextResponse.json({ error: "Collection ID is required" }, { status: 400 });
     }
 
-    console.log("POST recipe to collection - Session found for user:", session.user.id, "Collection ID:", collectionId);
+    console.log("POST recipe to collection - User found:", user.id, "Collection ID:", collectionId);
 
     const body = await request.json();
     const { recipe_id } = body;
@@ -51,7 +49,7 @@ export async function POST(
       return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     }
 
-    if (collection.user_id !== session.user.id) {
+    if (collection.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to modify this collection" }, { status: 403 });
     }
 
@@ -68,7 +66,7 @@ export async function POST(
     }
 
     // Check if user can access this recipe
-    const canAccess = recipe.user_id === session.user.id || 
+    const canAccess = recipe.user_id === user.id || 
                      recipe.visibility === 'public' || 
                      recipe.visibility === 'shared';
 
@@ -122,27 +120,25 @@ export async function POST(
 // DELETE /api/recipe-collections/[id]/recipes - Remove recipe from collection
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in DELETE /api/recipe-collections/[id]/recipes");
+    if (!user) {
+      console.log("No user found in DELETE /api/recipe-collections/[id]/recipes");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const collectionId = params.id;
+    const resolvedParams = await params;
+    const collectionId = resolvedParams.id;
 
     if (!collectionId) {
       return NextResponse.json({ error: "Collection ID is required" }, { status: 400 });
@@ -155,7 +151,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("DELETE recipe from collection - Session found for user:", session.user.id, "Collection ID:", collectionId, "Recipe ID:", recipe_id);
+    console.log("DELETE recipe from collection - User found:", user.id, "Collection ID:", collectionId, "Recipe ID:", recipe_id);
 
     // Check if user owns the collection
     const { data: collection, error: collectionError } = await supabase
@@ -169,7 +165,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Collection not found" }, { status: 404 });
     }
 
-    if (collection.user_id !== session.user.id) {
+    if (collection.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to modify this collection" }, { status: 403 });
     }
 

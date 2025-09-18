@@ -28,6 +28,12 @@ const adminNavItems = [
     description: "Manage food database"
   },
   {
+    title: "Users",
+    href: "/admin/users",
+    icon: Users,
+    description: "User management and analytics"
+  },
+  {
     title: "External APIs",
     href: "/admin/external-apis",
     icon: Globe,

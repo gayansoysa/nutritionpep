@@ -27,11 +27,9 @@ export default async function SettingsPage() {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     return null;
   }
 
@@ -39,14 +37,14 @@ export default async function SettingsPage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   // Get latest biometrics
   const { data: biometrics } = await supabase
     .from("biometrics")
     .select("*")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .order("ts", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -55,7 +53,7 @@ export default async function SettingsPage() {
   const { data: goals } = await supabase
     .from("goals")
     .select("*")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -78,7 +76,7 @@ export default async function SettingsPage() {
             <ProfileSettings 
               profile={profile} 
               biometrics={biometrics}
-              userEmail={session.user.email}
+              userEmail={user.email}
             />
           </CardContent>
         </Card>

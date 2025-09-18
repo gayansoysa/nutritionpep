@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ApiKeyManager from "../components/ApiKeyManager";
+import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 
 interface APIConfig {
   id: string;
@@ -105,6 +106,7 @@ export default function ExternalAPIsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const deleteConfirmation = useDeleteConfirmation();
 
   useEffect(() => {
     loadData();
@@ -326,7 +328,7 @@ export default function ExternalAPIsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={clearAPICache}>
+          <Button variant="outline" onClick={() => deleteConfirmation.confirm(clearAPICache)}>
             <Database className="h-4 w-4 mr-2" />
             Clear Cache
           </Button>
@@ -769,7 +771,7 @@ export default function ExternalAPIsPage() {
               </Alert>
 
               <div className="flex gap-2">
-                <Button onClick={clearAPICache} variant="destructive">
+                <Button onClick={() => deleteConfirmation.confirm(clearAPICache)} variant="destructive">
                   <Database className="h-4 w-4 mr-2" />
                   Clear All Cache
                 </Button>
@@ -782,6 +784,15 @@ export default function ExternalAPIsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <DeleteConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        isLoading={deleteConfirmation.isLoading}
+        title="Clear API Cache"
+        description="Are you sure you want to clear all API cache? This will remove all cached responses and may temporarily slow down food searches until the cache is rebuilt."
+      />
     </div>
   );
 }

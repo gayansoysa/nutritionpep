@@ -23,8 +23,8 @@ const recipeSchema = z.object({
   prep_time_minutes: z.number().min(0).optional(),
   cook_time_minutes: z.number().min(0).optional(),
   servings: z.number().min(1, 'At least 1 serving required').max(50, 'Too many servings'),
-  difficulty: z.enum(['easy', 'medium', 'hard']).default('easy'),
-  visibility: z.enum(['private', 'public', 'shared']).default('private'),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  visibility: z.enum(['private', 'public', 'shared']),
   image_url: z.string().url().optional().or(z.literal('')),
   category: z.string().optional(),
   cuisine: z.string().optional(),
@@ -41,7 +41,7 @@ const ingredientSchema = z.object({
   grams: z.number().min(0.01, 'Weight must be greater than 0'),
   preparation: z.string().optional(),
   notes: z.string().optional(),
-  optional: z.boolean().default(false),
+  optional: z.boolean(),
 });
 
 type IngredientFormData = z.infer<typeof ingredientSchema>;

@@ -25,12 +25,10 @@ export default async function HomePage() {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
   // If user is logged in, redirect to dashboard
-  if (session) {
+  if (user) {
     redirect("/dashboard");
   }
 

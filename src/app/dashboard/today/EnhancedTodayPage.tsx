@@ -63,7 +63,7 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
         <CardContent className="p-6 flex justify-center">
           <ProgressRing
             value={consumed.calories_kcal}
-            target={userTargets.calories_kcal}
+            target={userTargets.calories_kcal || 2000}
             label="calories"
             unit="kcal"
             size={200}
@@ -89,11 +89,11 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
                   <span className="font-medium">Protein</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {Math.round(consumed.protein_g)}g / {Math.round(userTargets.protein_g)}g
+                  {Math.round(consumed.protein_g)}g / {Math.round(userTargets.protein_g || 150)}g
                 </span>
               </div>
               <Progress 
-                value={(consumed.protein_g / userTargets.protein_g) * 100} 
+                value={(consumed.protein_g / (userTargets.protein_g || 150)) * 100} 
                 className="h-2"
               />
             </div>
@@ -105,11 +105,11 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
                   <span className="font-medium">Carbs</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {Math.round(consumed.carbs_g)}g / {Math.round(userTargets.carbs_g)}g
+                  {Math.round(consumed.carbs_g)}g / {Math.round(userTargets.carbs_g || 250)}g
                 </span>
               </div>
               <Progress 
-                value={(consumed.carbs_g / userTargets.carbs_g) * 100} 
+                value={(consumed.carbs_g / (userTargets.carbs_g || 250)) * 100} 
                 className="h-2"
               />
             </div>
@@ -121,11 +121,11 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
                   <span className="font-medium">Fat</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {Math.round(consumed.fat_g)}g / {Math.round(userTargets.fat_g)}g
+                  {Math.round(consumed.fat_g)}g / {Math.round(userTargets.fat_g || 65)}g
                 </span>
               </div>
               <Progress 
-                value={(consumed.fat_g / userTargets.fat_g) * 100} 
+                value={(consumed.fat_g / (userTargets.fat_g || 65)) * 100} 
                 className="h-2"
               />
             </div>
@@ -137,11 +137,11 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
                   <span className="font-medium">Fiber</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {Math.round(consumed.fiber_g)}g / {Math.round(userTargets.fiber_g)}g
+                  {Math.round(consumed.fiber_g)}g / {Math.round(userTargets.fiber_g || 25)}g
                 </span>
               </div>
               <Progress 
-                value={(consumed.fiber_g / userTargets.fiber_g) * 100} 
+                value={(consumed.fiber_g / (userTargets.fiber_g || 25)) * 100} 
                 className="h-2"
               />
             </div>
@@ -162,10 +162,10 @@ export default function EnhancedTodayPage({ target, consumed, entries }: Enhance
                 fiber: consumed.fiber_g,
               }}
               target={{
-                protein: userTargets.protein_g,
-                carbs: userTargets.carbs_g,
-                fat: userTargets.fat_g,
-                fiber: userTargets.fiber_g,
+                protein: userTargets.protein_g || 150,
+                carbs: userTargets.carbs_g || 250,
+                fat: userTargets.fat_g || 65,
+                fiber: userTargets.fiber_g || 25,
               }}
               type="doughnut"
               showCalories={false}

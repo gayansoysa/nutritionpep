@@ -6,22 +6,19 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in GET /api/favorites");
+    if (!user) {
+      console.log("No user found in GET /api/favorites");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("GET favorites - Session found for user:", session.user.id);
+    console.log("GET favorites - User found:", user.id);
 
     const { data: favorites, error } = await supabase
       .from("user_favorites")
@@ -38,7 +35,7 @@ export async function GET(request: NextRequest) {
           nutrients_per_100g
         )
       `)
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -64,23 +61,20 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseRouteHandlerClient();
     console.log("POST /api/favorites - Supabase client created");
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error in POST /api/favorites:", sessionError);
+    if (userError) {
+      console.error("Session error in POST /api/favorites:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in POST /api/favorites");
+    if (!user) {
+      console.log("No user found in POST /api/favorites");
       console.log("Request headers:", Object.fromEntries(request.headers.entries()));
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("POST favorites - Session found for user:", session.user.id);
+    console.log("POST favorites - User found:", user.id);
 
     const { food_id } = await request.json();
 
@@ -91,7 +85,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from("user_favorites")
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         food_id,
       })
       .select()
@@ -120,22 +114,19 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in DELETE /api/favorites");
+    if (!user) {
+      console.log("No user found in DELETE /api/favorites");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("DELETE favorites - Session found for user:", session.user.id);
+    console.log("DELETE favorites - User found:", user.id);
 
     const { searchParams } = new URL(request.url);
     const food_id = searchParams.get("food_id");
@@ -147,7 +138,7 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase
       .from("user_favorites")
       .delete()
-      .eq("user_id", session.user.id)
+      .eq("user_id", user.id)
       .eq("food_id", food_id);
 
     if (error) {

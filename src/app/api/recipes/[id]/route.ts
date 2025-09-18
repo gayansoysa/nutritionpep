@@ -4,33 +4,31 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/recipes/[id] - Get recipe by ID with ingredients
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in GET /api/recipes/[id]");
+    if (!user) {
+      console.log("No user found in GET /api/recipes/[id]");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("GET recipe - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("GET recipe - User found:", user.id, "Recipe ID:", recipeId);
 
     const { data: recipes, error } = await supabase.rpc(
       "get_recipe_with_ingredients",
@@ -52,7 +50,7 @@ export async function GET(
     const recipe = recipes[0];
 
     // Increment times_made if this is the recipe owner viewing it
-    if (recipe.user_id === session.user.id) {
+    if (recipe.user_id === user.id) {
       try {
         await supabase
           .from("recipes")
@@ -74,33 +72,31 @@ export async function GET(
 // PUT /api/recipes/[id] - Update recipe
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in PUT /api/recipes/[id]");
+    if (!user) {
+      console.log("No user found in PUT /api/recipes/[id]");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("PUT recipe - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("PUT recipe - User found:", user.id, "Recipe ID:", recipeId);
 
     const body = await request.json();
     const {
@@ -133,7 +129,7 @@ export async function PUT(
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
 
-    if (existingRecipe.user_id !== session.user.id) {
+    if (existingRecipe.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to update this recipe" }, { status: 403 });
     }
 
@@ -219,33 +215,31 @@ export async function PUT(
 // DELETE /api/recipes/[id] - Delete recipe
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in DELETE /api/recipes/[id]");
+    if (!user) {
+      console.log("No user found in DELETE /api/recipes/[id]");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const recipeId = params.id;
+    const resolvedParams = await params;
+    const recipeId = resolvedParams.id;
 
     if (!recipeId) {
       return NextResponse.json({ error: "Recipe ID is required" }, { status: 400 });
     }
 
-    console.log("DELETE recipe - Session found for user:", session.user.id, "Recipe ID:", recipeId);
+    console.log("DELETE recipe - User found:", user.id, "Recipe ID:", recipeId);
 
     // Check if user owns the recipe
     const { data: existingRecipe, error: checkError } = await supabase
@@ -259,7 +253,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
 
-    if (existingRecipe.user_id !== session.user.id) {
+    if (existingRecipe.user_id !== user.id) {
       return NextResponse.json({ error: "Unauthorized to delete this recipe" }, { status: 403 });
     }
 

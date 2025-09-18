@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 import { 
   Key, 
   Eye, 
@@ -90,6 +91,7 @@ export default function ApiKeyManager({ config, onUpdate }: ApiKeyManagerProps) 
   const [isLoading, setIsLoading] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const { toast } = useToast();
+  const deleteConfirmation = useDeleteConfirmation();
 
   const apiInfo = API_INFO[config.api_name as keyof typeof API_INFO];
 
@@ -145,7 +147,6 @@ export default function ApiKeyManager({ config, onUpdate }: ApiKeyManagerProps) 
   };
 
   const handleRemoveCredentials = async () => {
-    setIsLoading(true);
     try {
       const response = await fetch(`/api/admin/external-apis/credentials?api_name=${config.api_name}`, {
         method: 'DELETE',
@@ -168,8 +169,6 @@ export default function ApiKeyManager({ config, onUpdate }: ApiKeyManagerProps) 
         description: "Failed to remove API credentials",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -286,7 +285,7 @@ export default function ApiKeyManager({ config, onUpdate }: ApiKeyManagerProps) 
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={handleRemoveCredentials}
+                    onClick={() => deleteConfirmation.confirm(handleRemoveCredentials)}
                     disabled={isLoading}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
@@ -378,6 +377,15 @@ export default function ApiKeyManager({ config, onUpdate }: ApiKeyManagerProps) 
           </div>
         </div>
       </DialogContent>
+
+      <DeleteConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        isLoading={deleteConfirmation.isLoading}
+        title="Remove API Credentials"
+        description={`Are you sure you want to remove the ${apiInfo.name} API credentials? This will disable the API integration and cannot be undone.`}
+      />
     </Dialog>
   );
 }

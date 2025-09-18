@@ -27,11 +27,9 @@ export default async function AnalyticsPage() {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     return null;
   }
 
@@ -45,7 +43,7 @@ export default async function AnalyticsPage() {
   const { data: entries } = await supabase
     .from("diary_entries")
     .select("*")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .gte("date", startDate)
     .lte("date", today)
     .order("date", { ascending: true });
@@ -54,7 +52,7 @@ export default async function AnalyticsPage() {
   const { data: targets } = await supabase
     .from("targets")
     .select("*")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .gte("date", startDate)
     .lte("date", today)
     .order("date", { ascending: true });

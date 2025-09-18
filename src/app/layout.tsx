@@ -7,6 +7,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/network-status";
 import { QueryProvider } from "@/lib/react-query/provider";
+import { LoadingProgress, RouteChangeIndicator } from "@/components/ui/loading-progress";
 
 import "./globals.css";
 
@@ -55,8 +56,8 @@ export default async function RootLayout({
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -76,6 +77,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <ErrorBoundary>
+            <RouteChangeIndicator />
             <FloatingNetworkStatus />
             <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
               <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
@@ -89,7 +91,7 @@ export default async function RootLayout({
                   </div>
                 </div>
                 <nav className="flex items-center gap-4">
-                  {session ? (
+                  {user ? (
                     <>
                       <a href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
                         Dashboard

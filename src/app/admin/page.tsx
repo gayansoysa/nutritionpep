@@ -2,11 +2,8 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "@radix-ui/react-icons";
-import FoodsList from "./components/FoodsList";
-import UsersList from "./components/UsersList";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 
 export default async function AdminPage() {
@@ -30,11 +27,9 @@ export default async function AdminPage() {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
 
@@ -42,7 +37,7 @@ export default async function AdminPage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   if (!profile || (profile.role !== "admin" && profile.role !== "moderator")) {
@@ -64,10 +59,10 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-          <p className="text-gray-600 mt-1">Monitor your nutrition app's performance and data</p>
+          <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+          <p className="text-gray-600 mt-1">Monitor your nutrition app's performance and user engagement</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
@@ -116,22 +111,7 @@ export default async function AdminPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="foods">
-        <TabsList>
-          <TabsTrigger value="foods">Foods</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-        <TabsContent value="foods" className="mt-4">
-          <FoodsList />
-        </TabsContent>
-        <TabsContent value="users" className="mt-4">
-          <UsersList />
-        </TabsContent>
-        <TabsContent value="analytics" className="mt-4">
-          <AnalyticsDashboard />
-        </TabsContent>
-      </Tabs>
+      <AnalyticsDashboard />
     </div>
   );
 }

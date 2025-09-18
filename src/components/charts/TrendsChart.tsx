@@ -56,7 +56,7 @@ export default function TrendsChart({
         : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     });
 
-    const datasets = [];
+    const datasets: any[] = [];
 
     // Add main metric lines
     metrics.forEach(metric => {

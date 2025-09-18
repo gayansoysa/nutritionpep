@@ -7,9 +7,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseRouteHandlerClient();
 
     // Check if user is authenticated (optional for setup)
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
     // Create the table using raw SQL
     const { data, error } = await supabase.rpc('exec_sql', {

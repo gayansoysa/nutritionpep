@@ -6,31 +6,28 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createSupabaseRouteHandlerClient();
 
-    const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("Session error:", userError);
       return NextResponse.json({ 
         authenticated: false, 
-        error: sessionError.message 
+        error: userError.message 
       });
     }
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ 
         authenticated: false, 
-        message: "No session found" 
+        message: "No user found" 
       });
     }
 
     return NextResponse.json({ 
       authenticated: true, 
       user: {
-        id: session.user.id,
-        email: session.user.email
+        id: user.id,
+        email: user.email
       }
     });
 

@@ -73,7 +73,6 @@ export default function ProgressRing({
         data: [percentage, 100 - percentage],
         backgroundColor: [progressColor, 'rgba(0, 0, 0, 0.1)'],
         borderWidth: 0,
-        cutout: '75%',
       },
     ],
   };
@@ -82,6 +81,7 @@ export default function ProgressRing({
   const options: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: '75%',
     animation: animated ? {
       animateRotate: true,
       duration: 1000,

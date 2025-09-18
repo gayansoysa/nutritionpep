@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BulkFoodSelector, SelectedFood, Food } from "@/components/ui/bulk-food-selector";
-import { ArrowLeft, Plus } from "lucide-react";
+import { CopyMealDialog } from "@/components/ui/copy-meal-dialog";
+import { MealTemplatesDialog } from "@/components/ui/meal-templates-dialog";
+import { ArrowLeft, Plus, Copy, BookOpen } from "lucide-react";
 import { toast } from "@/lib/utils/toast";
 
 export default function BulkAddPage() {
@@ -17,6 +19,7 @@ export default function BulkAddPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<string>("breakfast");
   const [searchQuery, setSearchQuery] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,6 +132,13 @@ export default function BulkAddPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleMealCopiedOrApplied = () => {
+    // Refresh the page to show updated meal
+    setRefreshKey(prev => prev + 1);
+    // Optionally redirect to today's page to see the changes
+    router.push("/dashboard/today");
   };
 
   const getTotalNutrition = () => {
@@ -250,6 +260,32 @@ export default function BulkAddPage() {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              <CopyMealDialog 
+                targetMeal={selectedMeal}
+                onMealCopied={handleMealCopiedOrApplied}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy from Previous Day
+                </Button>
+              </CopyMealDialog>
+              
+              <MealTemplatesDialog
+                targetMeal={selectedMeal}
+                onTemplateApplied={handleMealCopiedOrApplied}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Use Meal Template
+                </Button>
+              </MealTemplatesDialog>
+              
               <Button
                 variant="outline"
                 className="w-full justify-start"

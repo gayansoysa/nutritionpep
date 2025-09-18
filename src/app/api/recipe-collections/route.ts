@@ -7,17 +7,17 @@ export async function GET(request: NextRequest) {
     const supabase = await createSupabaseRouteHandlerClient();
 
     const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("User error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in GET /api/recipe-collections");
+    if (!user) {
+      console.log("No user found in GET /api/recipe-collections");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const visibility = searchParams.get("visibility");
     const userId = searchParams.get("userId");
 
-    console.log("GET recipe collections - Session found for user:", session.user.id);
+    console.log("GET recipe collections - User found:", user.id);
 
     let query = supabase
       .from("recipe_collections")
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       query = query.eq("user_id", userId);
     } else {
       // Default to user's own collections and public ones
-      query = query.or(`user_id.eq.${session.user.id},visibility.eq.public,visibility.eq.shared`);
+      query = query.or(`user_id.eq.${user.id},visibility.eq.public,visibility.eq.shared`);
     }
 
     const { data: collections, error } = await query;
@@ -83,21 +83,21 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseRouteHandlerClient();
 
     const {
-      data: { session },
-      error: sessionError
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser();
 
-    if (sessionError) {
-      console.error("Session error:", sessionError);
+    if (userError) {
+      console.error("User error:", userError);
       return NextResponse.json({ error: "Authentication error" }, { status: 401 });
     }
 
-    if (!session) {
-      console.log("No session found in POST /api/recipe-collections");
+    if (!user) {
+      console.log("No user found in POST /api/recipe-collections");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("POST recipe collection - Session found for user:", session.user.id);
+    console.log("POST recipe collection - User found:", user.id);
 
     const body = await request.json();
     const { name, description, image_url, visibility } = body;
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     const { data: collection, error: createError } = await supabase
       .from("recipe_collections")
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         name,
         description,
         image_url,

@@ -60,8 +60,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // This will refresh the session if needed
-  const { data: { session } } = await supabase.auth.getSession()
+  // This will refresh the session if needed and authenticate the user securely
+  const { data: { user } } = await supabase.auth.getUser()
 
   return response
 }

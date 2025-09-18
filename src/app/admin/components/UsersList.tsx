@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Button } from "@/components/ui/button";
 import { 
   Table, 
@@ -44,7 +43,6 @@ export default function UsersList() {
   const [hasNextPage, setHasNextPage] = useState(false);
   
   const pageSize = 20;
-  const supabase = createClientComponentClient();
   
   useEffect(() => {
     fetchUsers();
@@ -54,53 +52,35 @@ export default function UsersList() {
     setIsLoading(true);
     
     try {
-      // First get total count
-      const { count, error: countError } = await supabase
-        .from("profiles")
-        .select("*", { count: 'exact', head: true });
-        
-      if (countError) {
-        throw countError;
-      }
+      console.log(`Fetching users: page=${currentPage}, pageSize=${pageSize}`);
       
-      setTotalUsers(count || 0);
-      
-      // Then get profiles with pagination
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name, role")
-        .order("created_at", { ascending: false })
-        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1);
-        
-      if (profilesError) {
-        throw profilesError;
-      }
-      
-      // Then get auth users
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        throw authError;
-      }
-      
-      // Combine the data
-      const combinedUsers = profiles.map(profile => {
-        const authUser = authUsers.users.find(user => user.id === profile.id);
-        return {
-          id: profile.id,
-          email: authUser?.email || "Unknown",
-          full_name: profile.full_name,
-          role: profile.role || "user",
-          last_sign_in_at: authUser?.last_sign_in_at || null,
-          created_at: authUser?.created_at || "Unknown"
-        };
+      const response = await fetch(`/api/admin/users?page=${currentPage}&pageSize=${pageSize}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+
+      console.log(`API response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API error response:", errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("API success response:", data);
       
-      setUsers(combinedUsers);
-      setHasNextPage(profiles.length === pageSize);
+      setUsers(data.users);
+      setTotalUsers(data.totalUsers);
+      setHasNextPage(data.hasNextPage);
     } catch (error: any) {
-      console.error("Error fetching users:", error);
-      toast.error("Failed to load users");
+      console.error("Error fetching users:", {
+        message: error?.message || "Unknown error",
+        error: error
+      });
+      toast.error(`Failed to load users: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -108,14 +88,20 @@ export default function UsersList() {
   
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ role: newRole })
-        .eq("id", userId);
-        
-      if (error) {
-        throw error;
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
+
+      const data = await response.json();
       
       setUsers(users.map(user => 
         user.id === userId ? { ...user, role: newRole } : user
@@ -123,7 +109,12 @@ export default function UsersList() {
       
       toast.success(`User role updated to ${newRole}`);
     } catch (error: any) {
-      console.error("Error updating user role:", error);
+      console.error("Error updating user role:", {
+        message: error?.message || "Unknown error",
+        userId,
+        newRole,
+        error: error
+      });
       toast.error("Failed to update user role");
     }
   };

@@ -4,7 +4,7 @@ import * as React from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-	const supabase = React.useMemo(() => createSupabaseBrowserClient(), []);
+	const supabase = createSupabaseBrowserClient();
 
 	const [email, setEmail] = React.useState("");
 	const [password, setPassword] = React.useState("");
@@ -31,12 +31,23 @@ export default function LoginPage() {
 				});
 				if (signInError) throw signInError;
 			} else {
-				const { error: signUpError } = await supabase.auth.signUp({
+				const { data, error: signUpError } = await supabase.auth.signUp({
 					email,
 					password,
-					options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+					options: { 
+						emailRedirectTo: `${window.location.origin}/auth/callback`,
+						data: {
+							full_name: email.split('@')[0] // Use email prefix as default name
+						}
+					},
 				});
 				if (signUpError) throw signUpError;
+				
+				// If user was created immediately (no email confirmation required)
+				if (data.user && !data.user.email_confirmed_at) {
+					alert("Please check your email to confirm your account before signing in.");
+					return;
+				}
 			}
 			window.location.href = "/";
 		} catch (err: unknown) {

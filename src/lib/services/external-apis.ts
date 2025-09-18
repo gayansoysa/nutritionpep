@@ -15,12 +15,6 @@ const API_CONFIGS = {
     rateLimit: 1000, // requests per hour
     enabled: !!process.env.USDA_API_KEY
   },
-  CALORIE_NINJAS: {
-    baseUrl: 'https://api.calorieninjas.com/v1',
-    apiKey: process.env.CALORIE_NINJAS_API_KEY,
-    rateLimit: 100000, // requests per month
-    enabled: !!process.env.CALORIE_NINJAS_API_KEY
-  },
   FATSECRET: {
     baseUrl: 'https://platform.fatsecret.com/rest/server.api',
     clientId: process.env.FATSECRET_CLIENT_ID,
@@ -28,15 +22,8 @@ const API_CONFIGS = {
     rateLimit: 10000, // requests per day
     enabled: !!(process.env.FATSECRET_CLIENT_ID && process.env.FATSECRET_CLIENT_SECRET)
   },
-  EDAMAM: {
-    baseUrl: 'https://api.edamam.com/api/food-database/v2',
-    appId: process.env.EDAMAM_APP_ID,
-    appKey: process.env.EDAMAM_APP_KEY,
-    rateLimit: 10000, // requests per month
-    enabled: !!(process.env.EDAMAM_APP_ID && process.env.EDAMAM_APP_KEY)
-  },
   OPEN_FOOD_FACTS: {
-    baseUrl: 'https://world.openfoodfacts.org/api/v0',
+    baseUrl: 'https://world.openfoodfacts.org',
     apiKey: null, // No API key required
     rateLimit: null, // No official rate limit
     enabled: true
@@ -146,12 +133,8 @@ class ExternalAPIService {
     switch (apiName) {
       case 'USDA':
         return this.searchUSDA(query, options);
-      case 'CALORIE_NINJAS':
-        return this.searchCalorieNinjas(query, options);
       case 'FATSECRET':
         return this.searchFatSecret(query, options);
-      case 'EDAMAM':
-        return this.searchEdamam(query, options);
       case 'OPEN_FOOD_FACTS':
         return this.searchOpenFoodFacts(query, options);
       default:
@@ -192,35 +175,7 @@ class ExternalAPIService {
     };
   }
 
-  /**
-   * CalorieNinjas API Integration
-   */
-  private async searchCalorieNinjas(query: string, options: any): Promise<APISearchResult> {
-    if (!API_CONFIGS.CALORIE_NINJAS.enabled) {
-      throw new Error('CalorieNinjas API not configured');
-    }
 
-    const url = `${API_CONFIGS.CALORIE_NINJAS.baseUrl}/nutrition`;
-    const response = await fetch(`${url}?query=${encodeURIComponent(query)}`, {
-      headers: {
-        'X-Api-Key': API_CONFIGS.CALORIE_NINJAS.apiKey!
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`CalorieNinjas API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const foods: NormalizedFood[] = data.items?.map((item: any) => this.normalizeCalorieNinjasFood(item, query)) || [];
-
-    return {
-      foods,
-      source: 'CalorieNinjas',
-      totalResults: foods.length,
-      hasMore: false
-    };
-  }
 
   /**
    * FatSecret Platform API Integration
@@ -263,37 +218,7 @@ class ExternalAPIService {
     };
   }
 
-  /**
-   * Edamam Food Database API Integration
-   */
-  private async searchEdamam(query: string, options: any): Promise<APISearchResult> {
-    if (!API_CONFIGS.EDAMAM.enabled) {
-      throw new Error('Edamam API not configured');
-    }
 
-    const url = `${API_CONFIGS.EDAMAM.baseUrl}/parser`;
-    const params = new URLSearchParams({
-      app_id: API_CONFIGS.EDAMAM.appId!,
-      app_key: API_CONFIGS.EDAMAM.appKey!,
-      ingr: query,
-      nutrition_type: 'cooking'
-    });
-
-    const response = await fetch(`${url}?${params}`);
-    if (!response.ok) {
-      throw new Error(`Edamam API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const foods: NormalizedFood[] = data.hints?.map((hint: any) => this.normalizeEdamamFood(hint.food)) || [];
-
-    return {
-      foods,
-      source: 'Edamam',
-      totalResults: foods.length,
-      hasMore: false
-    };
-  }
 
   /**
    * Enhanced Open Food Facts API Integration
@@ -380,30 +305,7 @@ class ExternalAPIService {
     };
   }
 
-  private normalizeCalorieNinjasFood(item: any, originalQuery: string): NormalizedFood {
-    return {
-      id: `cn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      name: item.name || originalQuery,
-      serving_sizes: [
-        { name: '100g', grams: 100 },
-        { name: `Serving (${item.serving_size_g}g)`, grams: item.serving_size_g || 100 }
-      ],
-      nutrients_per_100g: {
-        calories_kcal: (item.calories / (item.serving_size_g || 100)) * 100,
-        protein_g: (item.protein_g / (item.serving_size_g || 100)) * 100,
-        carbs_g: (item.carbohydrates_total_g / (item.serving_size_g || 100)) * 100,
-        fat_g: (item.fat_total_g / (item.serving_size_g || 100)) * 100,
-        fiber_g: item.fiber_g ? (item.fiber_g / (item.serving_size_g || 100)) * 100 : undefined,
-        sugar_g: item.sugar_g ? (item.sugar_g / (item.serving_size_g || 100)) * 100 : undefined,
-        sodium_mg: item.sodium_mg ? (item.sodium_mg / (item.serving_size_g || 100)) * 100 : undefined,
-        saturated_fat_g: item.fat_saturated_g ? (item.fat_saturated_g / (item.serving_size_g || 100)) * 100 : undefined,
-        cholesterol_mg: item.cholesterol_mg ? (item.cholesterol_mg / (item.serving_size_g || 100)) * 100 : undefined
-      },
-      source: 'CalorieNinjas',
-      external_id: `${originalQuery}_${Date.now()}`,
-      verified: false
-    };
-  }
+
 
   private normalizeFatSecretFood(food: any): NormalizedFood {
     return {
@@ -425,35 +327,7 @@ class ExternalAPIService {
     };
   }
 
-  private normalizeEdamamFood(food: any): NormalizedFood {
-    return {
-      id: `edamam_${food.foodId}`,
-      name: food.label || 'Unknown Food',
-      brand: food.brand || undefined,
-      category: food.category || undefined,
-      serving_sizes: [
-        { name: '100g', grams: 100 }
-      ],
-      nutrients_per_100g: {
-        calories_kcal: food.nutrients?.ENERC_KCAL || 0,
-        protein_g: food.nutrients?.PROCNT || 0,
-        carbs_g: food.nutrients?.CHOCDF || 0,
-        fat_g: food.nutrients?.FAT || 0,
-        fiber_g: food.nutrients?.FIBTG,
-        sugar_g: food.nutrients?.SUGAR,
-        sodium_mg: food.nutrients?.NA,
-        saturated_fat_g: food.nutrients?.FASAT,
-        cholesterol_mg: food.nutrients?.CHOLE,
-        calcium_mg: food.nutrients?.CA,
-        iron_mg: food.nutrients?.FE,
-        vitamin_c_mg: food.nutrients?.VITC
-      },
-      source: 'Edamam',
-      external_id: food.foodId,
-      verified: false,
-      image_url: food.image
-    };
-  }
+
 
   private normalizeOpenFoodFactsFood(product: any): NormalizedFood {
     return {
@@ -480,7 +354,7 @@ class ExternalAPIService {
       source: 'OpenFoodFacts',
       external_id: product.code || `off_${Date.now()}`,
       verified: false,
-      image_url: product.image_url
+      image_url: product.image_front_url || product.image_url || undefined
     };
   }
 
@@ -563,7 +437,7 @@ class ExternalAPIService {
     }
 
     // Default order by reliability and data quality
-    return ['USDA', 'EDAMAM', 'OPEN_FOOD_FACTS', 'CALORIE_NINJAS', 'FATSECRET'];
+    return ['USDA', 'OPEN_FOOD_FACTS', 'FATSECRET'];
   }
 
   private async getFatSecretAccessToken(): Promise<string> {

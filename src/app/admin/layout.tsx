@@ -30,11 +30,9 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
 
@@ -42,7 +40,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, full_name")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   if (!profile || (profile.role !== "admin" && profile.role !== "moderator")) {
@@ -70,7 +68,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Welcome, {profile.full_name || session.user.email}
+                Welcome, {profile.full_name || user.email}
               </span>
               <div className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                 {profile.role}

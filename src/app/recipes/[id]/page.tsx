@@ -10,9 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecipeWithIngredients, RecipeRating } from '@/lib/types/recipes';
 import { toast } from 'sonner';
+import { DeleteConfirmationDialog, useDeleteConfirmation } from '@/components/ui/delete-confirmation-dialog';
 
 interface RecipePageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default function RecipePage({ params }: RecipePageProps) {
@@ -22,16 +23,28 @@ export default function RecipePage({ params }: RecipePageProps) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [userRating, setUserRating] = useState<RecipeRating | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [recipeId, setRecipeId] = useState<string>('');
+  const deleteConfirmation = useDeleteConfirmation();
 
   useEffect(() => {
-    fetchRecipe();
-    fetchUserRating();
-  }, [params.id]);
+    const initializeParams = async () => {
+      const resolvedParams = await params;
+      setRecipeId(resolvedParams.id);
+    };
+    initializeParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (recipeId) {
+      fetchRecipe();
+      fetchUserRating();
+    }
+  }, [recipeId]);
 
   const fetchRecipe = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/recipes/${params.id}`);
+      const response = await fetch(`/api/recipes/${recipeId}`);
       if (!response.ok) {
         if (response.status === 404) {
           toast.error('Recipe not found');
@@ -58,7 +71,7 @@ export default function RecipePage({ params }: RecipePageProps) {
 
   const fetchUserRating = async () => {
     try {
-      const response = await fetch(`/api/recipes/${params.id}/rating`);
+      const response = await fetch(`/api/recipes/${recipeId}/rating`);
       if (response.ok) {
         const data = await response.json();
         setUserRating(data.rating);
@@ -70,7 +83,7 @@ export default function RecipePage({ params }: RecipePageProps) {
 
   const toggleFavorite = async () => {
     try {
-      const response = await fetch(`/api/recipes/${params.id}/favorite`, {
+      const response = await fetch(`/api/recipes/${recipeId}/favorite`, {
         method: 'POST',
       });
       
@@ -87,7 +100,7 @@ export default function RecipePage({ params }: RecipePageProps) {
 
   const rateRecipe = async (rating: number, review?: string) => {
     try {
-      const response = await fetch(`/api/recipes/${params.id}/rating`, {
+      const response = await fetch(`/api/recipes/${recipeId}/rating`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,12 +123,8 @@ export default function RecipePage({ params }: RecipePageProps) {
   };
 
   const deleteRecipe = async () => {
-    if (!confirm('Are you sure you want to delete this recipe? This action cannot be undone.')) {
-      return;
-    }
-
     try {
-      const response = await fetch(`/api/recipes/${params.id}`, {
+      const response = await fetch(`/api/recipes/${recipeId}`, {
         method: 'DELETE',
       });
       
@@ -261,7 +270,11 @@ export default function RecipePage({ params }: RecipePageProps) {
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={deleteRecipe}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => deleteConfirmation.confirm(deleteRecipe)}
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </Button>
@@ -486,6 +499,15 @@ export default function RecipePage({ params }: RecipePageProps) {
           </CardContent>
         </Card>
       )}
+
+      <DeleteConfirmationDialog
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        isLoading={deleteConfirmation.isLoading}
+        title="Delete Recipe"
+        description={`Are you sure you want to delete "${recipe?.name}"? This action cannot be undone and will permanently remove the recipe from your collection.`}
+      />
     </div>
   );
 }

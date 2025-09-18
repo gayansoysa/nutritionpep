@@ -27,11 +27,9 @@ export default async function OnboardingLayout({
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect("/login");
   }
 
@@ -39,7 +37,7 @@ export default async function OnboardingLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select("onboarding_completed")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   // If onboarding is already completed, redirect to dashboard
