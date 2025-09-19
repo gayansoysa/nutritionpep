@@ -475,7 +475,10 @@ export default function EditFoodPage() {
       </Form>
       
       <DeleteConfirmationDialog
-        {...deleteConfirmation.dialogProps}
+        open={deleteConfirmation.isOpen}
+        onOpenChange={deleteConfirmation.setIsOpen}
+        onConfirm={deleteConfirmation.handleConfirm}
+        isLoading={deleteConfirmation.isLoading}
         title="Remove Serving Size"
         description="Are you sure you want to remove this serving size? This action cannot be undone."
       />
