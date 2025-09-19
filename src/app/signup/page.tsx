@@ -3,8 +3,8 @@
 import * as React from "react";
 import { LoginForm } from "@/components/login-form";
 
-export default function LoginPage() {
-  const [mode, setMode] = React.useState<"signin" | "signup">("signin");
+export default function SignupPage() {
+  const [mode, setMode] = React.useState<"signin" | "signup">("signup");
 
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">

@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/network-status";
 import { QueryProvider } from "@/lib/react-query/provider";
 import { LoadingProgress, RouteChangeIndicator } from "@/components/ui/loading-progress";
+import { ProfileDropdownServer } from "@/components/navigation/ProfileDropdownServer";
 
 import "./globals.css";
 
@@ -96,17 +97,19 @@ export default async function RootLayout({
                       <a href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
                         Dashboard
                       </a>
-                      <a href="/profile" className="text-sm font-medium hover:text-primary transition-colors">
-                        Profile
-                      </a>
+                      <HeaderNetworkStatus />
+                      <ModeToggle />
+                      <ProfileDropdownServer />
                     </>
                   ) : (
-                    <a href="/login" className="text-sm font-medium hover:text-primary transition-colors">
-                      Login
-                    </a>
+                    <>
+                      <a href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+                        Login
+                      </a>
+                      <HeaderNetworkStatus />
+                      <ModeToggle />
+                    </>
                   )}
-                  <HeaderNetworkStatus />
-                  <ModeToggle />
                 </nav>
               </div>
               </header>
