@@ -105,7 +105,7 @@ class ExternalAPIService {
     }
 
     // Determine API order (preferred APIs first, then by reliability)
-    const apiOrder = this.getAPIOrder(preferredAPIs);
+    const apiOrder = await this.getAPIOrder(preferredAPIs);
     
     for (const apiName of apiOrder) {
       try {
@@ -427,7 +427,7 @@ class ExternalAPIService {
       });
   }
 
-  private getAPIOrder(preferredAPIs?: string[]): string[] {
+  private async getAPIOrder(preferredAPIs?: string[]): Promise<string[]> {
     const allAPIs = Object.keys(API_CONFIGS).filter(api => API_CONFIGS[api as keyof typeof API_CONFIGS].enabled);
     
     if (preferredAPIs) {
@@ -436,7 +436,35 @@ class ExternalAPIService {
       return [...validPreferred, ...remaining];
     }
 
-    // Default order by reliability and data quality
+    // Get default API from database
+    try {
+      const { data: defaultApiData } = await this.supabase
+        .rpc('get_default_api');
+      
+      const defaultAPI = defaultApiData || 'USDA';
+      
+      // Get enabled APIs from database configuration
+      const { data: apiConfigs } = await this.supabase
+        .from('api_configurations')
+        .select('api_name, is_enabled, is_default')
+        .eq('is_enabled', true)
+        .order('is_default', { ascending: false });
+      
+      if (apiConfigs && apiConfigs.length > 0) {
+        const enabledAPIs = apiConfigs.map(config => config.api_name);
+        const validEnabledAPIs = enabledAPIs.filter(api => allAPIs.includes(api));
+        
+        // Put default API first, then others
+        const defaultFirst = validEnabledAPIs.filter(api => api === defaultAPI);
+        const others = validEnabledAPIs.filter(api => api !== defaultAPI);
+        
+        return [...defaultFirst, ...others];
+      }
+    } catch (error) {
+      console.warn('Failed to get default API from database, using fallback:', error);
+    }
+
+    // Fallback order by reliability and data quality
     return ['USDA', 'OPEN_FOOD_FACTS', 'FATSECRET'];
   }
 

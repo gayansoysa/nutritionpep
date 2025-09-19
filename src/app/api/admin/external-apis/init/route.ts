@@ -48,20 +48,10 @@ export async function POST(request: NextRequest) {
         rate_limit_per_month: 720000
       },
       {
-        api_name: 'CalorieNinjas',
-        is_enabled: false,
-        rate_limit_per_month: 100000
-      },
-      {
         api_name: 'FatSecret',
         is_enabled: false,
         rate_limit_per_day: 10000,
         rate_limit_per_month: 300000
-      },
-      {
-        api_name: 'Edamam',
-        is_enabled: false,
-        rate_limit_per_month: 10000
       },
       {
         api_name: 'OpenFoodFacts',

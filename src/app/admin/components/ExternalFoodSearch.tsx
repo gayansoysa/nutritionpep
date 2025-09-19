@@ -24,7 +24,7 @@ import {
   ImageIcon
 } from "@radix-ui/react-icons";
 import { toast } from "@/lib/utils/toast";
-import { NormalizedFood } from "@/lib/services/external-apis";
+import { NormalizedFood } from "@/lib/services/external-apis-enhanced";
 
 interface ExternalFoodSearchProps {
   onFoodsImported?: () => void;

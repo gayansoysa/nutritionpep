@@ -1,5 +1,5 @@
 /**
- * External API Configuration Management Routes
+ * Default API Management Routes
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -37,53 +37,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Get API configurations
-    const { data: configs, error } = await supabase
-      .from('api_configurations')
-      .select('*')
-      .order('api_name');
+    // Get current default API
+    const { data: defaultAPI, error } = await supabase
+      .rpc('get_default_api');
 
     if (error) throw error;
 
-    // Add credential status (don't expose actual credentials)
-    const configsWithStatus = configs.map(config => {
-      let has_credentials = false;
-      
-      switch (config.api_name) {
-        case 'OpenFoodFacts':
-          has_credentials = true; // No credentials needed
-          break;
-        case 'USDA':
-          has_credentials = !!config.api_key_encrypted;
-          break;
-        case 'FatSecret':
-          has_credentials = !!(
-            config.additional_config?.client_id && 
-            config.additional_config?.client_secret
-          );
-          break;
-      }
-      
-      return {
-        ...config,
-        has_credentials,
-        api_key_encrypted: undefined, // Remove from response
-        additional_config: undefined // Remove from response
-      };
+    return NextResponse.json({ 
+      default_api: defaultAPI || 'USDA'
     });
 
-    return NextResponse.json(configsWithStatus);
-
   } catch (error: any) {
-    console.error("Failed to get API configurations:", error);
+    console.error("Failed to get default API:", error);
     return NextResponse.json(
-      { error: "Failed to get API configurations" },
+      { error: "Failed to get default API" },
       { status: 500 }
     );
   }
 }
 
-export async function PATCH(request: NextRequest) {
+export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -115,7 +88,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { api_name, ...updates } = body;
+    const { api_name } = body;
 
     if (!api_name) {
       return NextResponse.json(
@@ -124,25 +97,43 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Update API configuration
-    const { data, error } = await supabase
+    // Validate that the API exists and is enabled
+    const { data: apiConfig } = await supabase
       .from('api_configurations')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
+      .select('api_name, is_enabled')
       .eq('api_name', api_name)
-      .select()
       .single();
+
+    if (!apiConfig) {
+      return NextResponse.json(
+        { error: "API configuration not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!apiConfig.is_enabled) {
+      return NextResponse.json(
+        { error: "Cannot set disabled API as default" },
+        { status: 400 }
+      );
+    }
+
+    // Set the default API using the database function
+    const { data, error } = await supabase
+      .rpc('set_default_api', { api_name });
 
     if (error) throw error;
 
-    return NextResponse.json(data);
+    return NextResponse.json({ 
+      success: true,
+      default_api: api_name,
+      message: `${api_name} set as default API`
+    });
 
   } catch (error: any) {
-    console.error("Failed to update API configuration:", error);
+    console.error("Failed to set default API:", error);
     return NextResponse.json(
-      { error: "Failed to update API configuration" },
+      { error: error.message || "Failed to set default API" },
       { status: 500 }
     );
   }

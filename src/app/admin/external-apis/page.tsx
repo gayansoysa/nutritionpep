@@ -59,6 +59,7 @@ interface APIConfig {
   id: string;
   api_name: string;
   is_enabled: boolean;
+  is_default?: boolean;
   rate_limit_per_hour?: number;
   rate_limit_per_day?: number;
   rate_limit_per_month?: number;
@@ -93,9 +94,7 @@ interface SearchAnalytics {
 
 const API_COLORS = {
   USDA: '#2563eb',
-  CalorieNinjas: '#dc2626',
   FatSecret: '#059669',
-  Edamam: '#7c3aed',
   OpenFoodFacts: '#ea580c'
 };
 
@@ -103,6 +102,7 @@ export default function ExternalAPIsPage() {
   const [apiConfigs, setApiConfigs] = useState<APIConfig[]>([]);
   const [apiStats, setApiStats] = useState<APIStats[]>([]);
   const [searchAnalytics, setSearchAnalytics] = useState<SearchAnalytics[]>([]);
+  const [defaultAPI, setDefaultAPIState] = useState<string>('USDA');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -175,6 +175,13 @@ export default function ExternalAPIsPage() {
         setSearchAnalytics(Array.isArray(analytics) ? analytics : []);
       } else {
         setSearchAnalytics([]);
+      }
+
+      // Load default API
+      const defaultResponse = await fetch('/api/admin/external-apis/default');
+      if (defaultResponse.ok) {
+        const defaultData = await defaultResponse.json();
+        setDefaultAPIState(defaultData.default_api || 'USDA');
       }
 
     } catch (error) {
@@ -272,6 +279,41 @@ export default function ExternalAPIsPage() {
         description: "Failed to clear API cache",
         variant: "destructive"
       });
+    }
+  };
+
+  const setDefaultAPI = async (apiName: string) => {
+    try {
+      setSaving(true);
+      
+      const response = await fetch('/api/admin/external-apis/default', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_name: apiName })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to set default API');
+      }
+
+      setDefaultAPIState(apiName);
+      await loadData(); // Reload to get updated configurations
+      
+      toast({
+        title: "Success",
+        description: `${apiName} set as default API`
+      });
+
+    } catch (error: any) {
+      console.error('Failed to set default API:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to set default API",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -563,6 +605,68 @@ export default function ExternalAPIsPage() {
             </Card>
           ) : (
             <div className="grid gap-4">
+              {/* Default API Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Default API Configuration
+                  </CardTitle>
+                  <CardDescription>
+                    Set the primary API that will be used first for all food searches. 
+                    The system will fallback to other enabled APIs if the default fails.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="default-api-select">Default API</Label>
+                      <div className="flex items-center gap-4 mt-2">
+                        <div className="flex-1">
+                          <select
+                            id="default-api-select"
+                            value={defaultAPI}
+                            onChange={(e) => setDefaultAPIState(e.target.value)}
+                            className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                            disabled={saving}
+                          >
+                            {apiConfigs
+                              .filter(config => config.is_enabled)
+                              .map(config => (
+                                <option key={config.api_name} value={config.api_name}>
+                                  {config.api_name}
+                                  {config.is_default ? ' (Current Default)' : ''}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                        <Button
+                          onClick={() => setDefaultAPI(defaultAPI)}
+                          disabled={saving || !defaultAPI}
+                          size="sm"
+                        >
+                          {saving ? 'Setting...' : 'Set Default'}
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 bg-muted rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-2 h-2 bg-primary rounded-full mt-2"></div>
+                        <div className="text-sm text-muted-foreground">
+                          <p className="font-medium mb-1">Current Default: {defaultAPI}</p>
+                          <p>
+                            This API will be tried first for all food searches. If it fails or returns no results, 
+                            the system will automatically try other enabled APIs in order of reliability.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Individual API Configurations */}
               {apiConfigs.map((config) => (
               <Card key={config.id}>
                 <CardHeader>

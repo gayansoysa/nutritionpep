@@ -189,8 +189,8 @@ export const barcodeSchema = z.object({
 
 // API Configuration schema (for admin)
 export const apiConfigSchema = z.object({
-  api_name: z.enum(["USDA", "CalorieNinjas", "FatSecret", "Edamam", "OpenFoodFacts"])
-    .refine(val => ["USDA", "CalorieNinjas", "FatSecret", "Edamam", "OpenFoodFacts"].includes(val), {
+  api_name: z.enum(["USDA", "FatSecret", "OpenFoodFacts"])
+    .refine(val => ["USDA", "FatSecret", "OpenFoodFacts"].includes(val), {
       message: "Please select a valid API"
     }),
   

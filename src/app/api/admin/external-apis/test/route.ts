@@ -107,12 +107,8 @@ async function testAPIConnection(apiName: string, config: any) {
     switch (apiName) {
       case 'USDA':
         return await testUSDA(config);
-      case 'CalorieNinjas':
-        return await testCalorieNinjas(config);
       case 'FatSecret':
         return await testFatSecret(config);
-      case 'Edamam':
-        return await testEdamam(config);
       case 'OpenFoodFacts':
         return await testOpenFoodFacts();
       default:
@@ -167,45 +163,6 @@ async function testUSDA(config: any) {
   }
 }
 
-async function testCalorieNinjas(config: any) {
-  const startTime = Date.now();
-  
-  if (!config.api_key_encrypted) {
-    return {
-      success: false,
-      message: "API key not configured",
-      responseTime: Date.now() - startTime,
-      error: "API key not configured"
-    };
-  }
-
-  const apiKey = decrypt(config.api_key_encrypted);
-  const url = `https://api.calorieninjas.com/v1/nutrition?query=apple`;
-  
-  const response = await fetch(url, {
-    headers: {
-      'X-Api-Key': apiKey
-    }
-  });
-  
-  const responseTime = Date.now() - startTime;
-  
-  if (response.ok) {
-    return {
-      success: true,
-      message: "CalorieNinjas API connection successful",
-      responseTime
-    };
-  } else {
-    return {
-      success: false,
-      message: `CalorieNinjas API error: ${response.status} ${response.statusText}`,
-      responseTime,
-      error: `HTTP ${response.status}: ${response.statusText}`
-    };
-  }
-}
-
 async function testFatSecret(config: any) {
   const startTime = Date.now();
   
@@ -224,41 +181,6 @@ async function testFatSecret(config: any) {
     message: "FatSecret credentials configured (OAuth test not implemented)",
     responseTime: Date.now() - startTime
   };
-}
-
-async function testEdamam(config: any) {
-  const startTime = Date.now();
-  
-  if (!config.additional_config?.app_id || !config.additional_config?.app_key) {
-    return {
-      success: false,
-      message: "App ID and Key not configured",
-      responseTime: Date.now() - startTime,
-      error: "App ID and Key not configured"
-    };
-  }
-
-  const appId = decrypt(config.additional_config.app_id);
-  const appKey = decrypt(config.additional_config.app_key);
-  const url = `https://api.edamam.com/api/food-database/v2/parser?app_id=${appId}&app_key=${appKey}&ingr=apple&nutrition_type=cooking`;
-  
-  const response = await fetch(url);
-  const responseTime = Date.now() - startTime;
-  
-  if (response.ok) {
-    return {
-      success: true,
-      message: "Edamam API connection successful",
-      responseTime
-    };
-  } else {
-    return {
-      success: false,
-      message: `Edamam API error: ${response.status} ${response.statusText}`,
-      responseTime,
-      error: `HTTP ${response.status}: ${response.statusText}`
-    };
-  }
 }
 
 async function testOpenFoodFacts() {

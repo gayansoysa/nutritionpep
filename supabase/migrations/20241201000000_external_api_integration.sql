@@ -5,7 +5,7 @@
 -- Stores cached results from external APIs to reduce API calls and improve performance
 CREATE TABLE IF NOT EXISTS api_food_cache (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    api_source TEXT NOT NULL CHECK (api_source IN ('USDA', 'CalorieNinjas', 'FatSecret', 'Edamam', 'OpenFoodFacts')),
+    api_source TEXT NOT NULL CHECK (api_source IN ('USDA', 'FatSecret', 'OpenFoodFacts')),
     external_id TEXT NOT NULL,
     search_query TEXT,
     food_data JSONB NOT NULL,
@@ -221,9 +221,7 @@ CREATE TRIGGER update_api_configurations_updated_at
 -- Insert default API configurations
 INSERT INTO api_configurations (api_name, is_enabled, rate_limit_per_hour, rate_limit_per_day, rate_limit_per_month) VALUES
 ('USDA', false, 1000, 24000, 720000),
-('CalorieNinjas', false, null, null, 100000),
 ('FatSecret', false, null, 10000, 300000),
-('Edamam', false, null, null, 10000),
 ('OpenFoodFacts', true, null, null, null)
 ON CONFLICT (api_name) DO NOTHING;
 

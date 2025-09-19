@@ -99,33 +99,61 @@ class EnhancedExternalAPIService {
 
   /**
    * Get decrypted credentials for an API
+   * Falls back to environment variables if database credentials are not available
    */
   private getAPICredentials(apiName: string): any {
     const config = this.apiConfigs.get(apiName);
-    if (!config) return null;
-
     const credentials: any = {};
 
-    if (config.api_key_encrypted) {
-      credentials.api_key = decrypt(config.api_key_encrypted);
+    // Try to get credentials from database first
+    if (config) {
+      if (config.api_key_encrypted) {
+        try {
+          credentials.api_key = decrypt(config.api_key_encrypted);
+        } catch (error) {
+          console.warn(`Failed to decrypt API key for ${apiName}:`, error);
+        }
+      }
+
+      if (config.additional_config) {
+        try {
+          if (config.additional_config.client_id) {
+            credentials.client_id = decrypt(config.additional_config.client_id);
+          }
+          if (config.additional_config.client_secret) {
+            credentials.client_secret = decrypt(config.additional_config.client_secret);
+          }
+          if (config.additional_config.app_id) {
+            credentials.app_id = decrypt(config.additional_config.app_id);
+          }
+          if (config.additional_config.app_key) {
+            credentials.app_key = decrypt(config.additional_config.app_key);
+          }
+        } catch (error) {
+          console.warn(`Failed to decrypt additional config for ${apiName}:`, error);
+        }
+      }
     }
 
-    if (config.additional_config) {
-      if (config.additional_config.client_id) {
-        credentials.client_id = decrypt(config.additional_config.client_id);
-      }
-      if (config.additional_config.client_secret) {
-        credentials.client_secret = decrypt(config.additional_config.client_secret);
-      }
-      if (config.additional_config.app_id) {
-        credentials.app_id = decrypt(config.additional_config.app_id);
-      }
-      if (config.additional_config.app_key) {
-        credentials.app_key = decrypt(config.additional_config.app_key);
+    // Fall back to environment variables if database credentials are not available
+    if (!credentials.api_key && !credentials.client_id) {
+      switch (apiName) {
+        case 'USDA':
+          if (process.env.USDA_API_KEY) {
+            credentials.api_key = process.env.USDA_API_KEY;
+          }
+          break;
+        case 'FatSecret':
+          if (process.env.FATSECRET_CLIENT_ID && process.env.FATSECRET_CLIENT_SECRET) {
+            credentials.client_id = process.env.FATSECRET_CLIENT_ID;
+            credentials.client_secret = process.env.FATSECRET_CLIENT_SECRET;
+          }
+          break;
+        // OpenFoodFacts doesn't require credentials
       }
     }
 
-    return credentials;
+    return Object.keys(credentials).length > 0 ? credentials : null;
   }
 
   /**
@@ -176,8 +204,18 @@ class EnhancedExternalAPIService {
    * Get API order based on preferences and availability
    */
   private getAPIOrder(preferredAPIs?: string[]): string[] {
-    const availableAPIs = Array.from(this.apiConfigs.keys());
-    const defaultOrder = ['USDA', 'Edamam', 'FatSecret', 'CalorieNinjas', 'OpenFoodFacts'];
+    const defaultOrder = ['USDA', 'FatSecret', 'OpenFoodFacts'];
+    
+    // Filter APIs that have credentials available (either from database or environment)
+    const availableAPIs = defaultOrder.filter(apiName => {
+      // Check if API is enabled in database config
+      const config = this.apiConfigs.get(apiName);
+      if (config && !config.is_enabled) return false;
+      
+      // Check if credentials are available
+      const credentials = this.getAPICredentials(apiName);
+      return credentials !== null || apiName === 'OpenFoodFacts'; // OpenFoodFacts doesn't need credentials
+    });
     
     if (preferredAPIs) {
       const preferred = preferredAPIs.filter(api => availableAPIs.includes(api));
@@ -185,7 +223,7 @@ class EnhancedExternalAPIService {
       return [...preferred, ...remaining];
     }
 
-    return defaultOrder.filter(api => availableAPIs.includes(api));
+    return availableAPIs;
   }
 
   /**
@@ -248,7 +286,7 @@ class EnhancedExternalAPIService {
    * Open Food Facts API Integration
    */
   private async searchOpenFoodFacts(query: string, options: any): Promise<APISearchResult> {
-    const url = `https://world.openfoodfacts.org/api/v0/cgi/search.pl`;
+    const url = `https://world.openfoodfacts.org/cgi/search.pl`;
     const params = new URLSearchParams({
       search_terms: query,
       search_simple: '1',

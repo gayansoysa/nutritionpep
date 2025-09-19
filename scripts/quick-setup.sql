@@ -31,9 +31,7 @@ CREATE POLICY "Admins can manage API configurations" ON api_configurations
 -- Insert default configurations
 INSERT INTO api_configurations (api_name, is_enabled, rate_limit_per_hour, rate_limit_per_day, rate_limit_per_month) VALUES
 ('USDA', false, 1000, 24000, 720000),
-('CalorieNinjas', false, null, null, 100000),
 ('FatSecret', false, null, 10000, 300000),
-('Edamam', false, null, null, 10000),
 ('OpenFoodFacts', true, null, null, null)
 ON CONFLICT (api_name) DO NOTHING;
 

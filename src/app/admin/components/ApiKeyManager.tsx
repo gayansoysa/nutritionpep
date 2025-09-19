@@ -46,15 +46,6 @@ const API_INFO = {
     ],
     instructions: "1. Visit the USDA FoodData Central API page\n2. Sign up for a free API key\n3. Copy your API key and paste it below"
   },
-  CalorieNinjas: {
-    name: "CalorieNinjas",
-    description: "Quick nutrition lookup for common foods and ingredients",
-    signupUrl: "https://calorieninjas.com/api",
-    fields: [
-      { key: "api_key", label: "API Key", type: "password", required: true }
-    ],
-    instructions: "1. Visit CalorieNinjas API page\n2. Sign up for an account\n3. Get your API key from the dashboard\n4. Paste it below"
-  },
   FatSecret: {
     name: "FatSecret Platform",
     description: "Comprehensive food and nutrition database with detailed information",
@@ -64,16 +55,6 @@ const API_INFO = {
       { key: "client_secret", label: "Client Secret", type: "password", required: true }
     ],
     instructions: "1. Visit FatSecret Platform API page\n2. Create a developer account\n3. Create a new application\n4. Copy Client ID and Client Secret"
-  },
-  Edamam: {
-    name: "Edamam Food Database",
-    description: "Recipe and nutrition analysis with detailed food information",
-    signupUrl: "https://developer.edamam.com/food-database-api",
-    fields: [
-      { key: "app_id", label: "Application ID", type: "text", required: true },
-      { key: "app_key", label: "Application Key", type: "password", required: true }
-    ],
-    instructions: "1. Visit Edamam Developer Portal\n2. Sign up for an account\n3. Create a new Food Database application\n4. Copy Application ID and Key"
   },
   OpenFoodFacts: {
     name: "Open Food Facts",
