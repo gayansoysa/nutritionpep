@@ -15,6 +15,10 @@ export default function DesktopTabs() {
       href: "/dashboard/history",
     },
     {
+      name: "Search",
+      href: "/dashboard/search",
+    },
+    {
       name: "Analytics",
       href: "/dashboard/analytics",
     },

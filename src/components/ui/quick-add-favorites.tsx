@@ -71,26 +71,47 @@ export function QuickAddFavorites({
 
       // Calculate nutrition values
       const multiplier = quantity / 100;
-      const calories = Math.round(item.calories_per_100g * multiplier);
-      const protein = Math.round(item.protein_per_100g * multiplier * 10) / 10;
-      const carbs = Math.round(item.carbs_per_100g * multiplier * 10) / 10;
-      const fat = Math.round(item.fat_per_100g * multiplier * 10) / 10;
+      const calories_kcal = Math.round(item.calories_per_100g * multiplier);
+      const protein_g = Math.round(item.protein_per_100g * multiplier * 10) / 10;
+      const carbs_g = Math.round(item.carbs_per_100g * multiplier * 10) / 10;
+      const fat_g = Math.round(item.fat_per_100g * multiplier * 10) / 10;
+      const fiber_g = 0; // Default to 0 if not available
 
-      // Add to diary
-      const { error } = await supabase
-        .from("diary_entries")
-        .insert({
-          user_id: userId,
-          food_id: item.food_id,
-          date: today,
-          meal: mealType,
-          quantity,
-          unit,
-          calories,
-          protein,
-          carbs,
-          fat,
-        });
+      // Prepare item object for diary entry
+      const diaryItem = {
+        item_id: crypto.randomUUID(),
+        food_id: item.food_id,
+        name: item.name,
+        brand: item.brand || null,
+        barcode: null,
+        serving: unit,
+        quantity: quantity,
+        grams: quantity, // Assuming quantity is in grams
+        nutrients_snapshot: {
+          calories_kcal,
+          protein_g,
+          carbs_g,
+          fat_g,
+          fiber_g,
+        }
+      };
+
+      // Prepare totals object
+      const totals = {
+        calories_kcal,
+        protein_g,
+        carbs_g,
+        fat_g,
+        fiber_g,
+      };
+
+      // Add to diary using the proper RPC function
+      const { error } = await supabase.rpc("add_diary_item", {
+        p_date: today,
+        p_meal: mealType,
+        p_item: diaryItem,
+        p_totals: totals
+      });
 
       if (error) throw error;
 

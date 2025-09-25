@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { MinusIcon, PlusIcon } from "@radix-ui/react-icons";
 
 type Food = {
   id: string;
@@ -192,14 +193,46 @@ export default function AddItemForm({
                   <FormItem>
                     <FormLabel>Serving Size (grams)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.1" 
-                        min="0.1" 
-                        placeholder="Enter serving size in grams"
-                        {...field}
-                        value={field.value?.toString() ?? ''}
-                      />
+                      <div className="flex items-center space-x-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="lg"
+                          className="h-12 w-12 shrink-0"
+                          onClick={() => {
+                            const currentValue = parseFloat(field.value?.toString() || '0');
+                            const newValue = Math.max(0.1, currentValue - 1);
+                            form.setValue("servingSize", newValue);
+                          }}
+                          disabled={parseFloat(field.value?.toString() || '0') <= 1}
+                          title="Decrease by 1g"
+                        >
+                          <MinusIcon className="h-5 w-5" />
+                        </Button>
+                        <Input 
+                          type="number" 
+                          step="0.1" 
+                          min="0.1" 
+                          placeholder="Enter serving size in grams"
+                          className="text-center flex-1 h-12 text-lg"
+                          {...field}
+                          value={field.value?.toString() ?? ''}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="lg"
+                          className="h-12 w-12 shrink-0"
+                          onClick={() => {
+                            const currentValue = parseFloat(field.value?.toString() || '0');
+                            const newValue = currentValue + 1;
+                            form.setValue("servingSize", newValue);
+                          }}
+                          title="Increase by 1g"
+                        >
+                          <PlusIcon className="h-5 w-5" />
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                     {food.serving_sizes?.length > 0 && (
@@ -252,7 +285,7 @@ export default function AddItemForm({
             <div className="bg-muted/50 p-4 rounded-md">
               <h3 className="font-medium mb-3">Nutrition Preview</h3>
               <div className="text-xs text-muted-foreground mb-2">
-                Based on {watchServingSize}g serving (nutrition per 100g shown in search)
+                Based on {watchServingSize}g serving
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div className="flex justify-between">

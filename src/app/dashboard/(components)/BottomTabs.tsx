@@ -32,6 +32,12 @@ export default function BottomTabs() {
       badge: null,
     },
     {
+      name: "Search",
+      href: "/dashboard/search",
+      icon: <MagnifyingGlassIcon className="h-6 w-6" />,
+      badge: null,
+    },
+    {
       name: "Analytics",
       href: "/dashboard/analytics",
       icon: <BarChartIcon className="h-6 w-6" />,

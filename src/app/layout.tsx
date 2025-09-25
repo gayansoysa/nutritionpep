@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { redirect } from "next/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/mode-toggle";
+
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/network-status";
 import { QueryProvider } from "@/lib/react-query/provider";
@@ -98,7 +98,6 @@ export default async function RootLayout({
                         Dashboard
                       </a>
                       <HeaderNetworkStatus />
-                      <ModeToggle />
                       <ProfileDropdownServer />
                     </>
                   ) : (
@@ -107,7 +106,6 @@ export default async function RootLayout({
                         Login
                       </a>
                       <HeaderNetworkStatus />
-                      <ModeToggle />
                     </>
                   )}
                 </nav>

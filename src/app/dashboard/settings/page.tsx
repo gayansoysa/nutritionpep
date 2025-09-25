@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import ProfileSettings from "./ProfileSettings";
 import GoalsSettings from "./GoalsSettings";
 import PrivacySettings from "./PrivacySettings";
+import ThemeSettings from "./ThemeSettings";
 
 export default async function SettingsPage() {
   const cookieStore = await cookies();
@@ -89,6 +90,8 @@ export default async function SettingsPage() {
             <GoalsSettings goals={goals} />
           </CardContent>
         </Card>
+
+        <ThemeSettings />
 
         <Card>
           <CardHeader>

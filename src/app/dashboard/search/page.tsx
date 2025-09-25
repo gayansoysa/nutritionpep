@@ -291,7 +291,7 @@ export default function SearchPage() {
       </div>
       
       {/* Search Card */}
-          <Card className="glass-effect shadow-lg">
+          <Card className="glass-effect ">
         <CardContent className="p-6">
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="relative">
@@ -339,7 +339,7 @@ export default function SearchPage() {
       
       {/* Favorites Loading State */}
       {isLoadingFavorites && (
-        <Card className="glass-effect shadow-lg">
+        <Card className="glass-effect ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HeartIcon className="h-5 w-5 text-red-500" />
@@ -374,7 +374,7 @@ export default function SearchPage() {
       
       {/* Favorites Section */}
       {!isLoadingFavorites && favoritesFoods.length > 0 && (
-        <Card className="glass-effect shadow-lg">
+        <Card className="glass-effect ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HeartIcon className="h-5 w-5 text-red-500" />

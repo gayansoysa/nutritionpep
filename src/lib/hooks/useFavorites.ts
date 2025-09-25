@@ -128,68 +128,76 @@ export function useFavorites(userId?: string) {
     queryFn: async () => {
       if (!userId || userId === '') return [];
       
-      const { data, error } = await supabase.rpc('get_user_recent_foods', {
-        user_uuid: userId,
-        limit_count: 15 // Reduced limit for better performance
-      });
+      try {
+        const { data, error } = await supabase.rpc('get_user_recent_foods', {
+          user_uuid: userId,
+          limit_count: 15 // Reduced limit for better performance
+        });
 
-      if (error) {
-        // If function doesn't exist, fallback to direct table query
-        if (error.code === '42883') {
-          console.warn('get_user_recent_foods function not found, using fallback');
-          const { data: fallbackData, error: fallbackError } = await supabase
-            .from('recent_foods')
+        if (error) {
+          console.warn('get_user_recent_foods RPC failed:', error);
+          
+          // For any RPC error, try fallback approach
+          console.warn('Attempting fallback query for recent foods');
+          
+          // Fallback: Query diary entries directly to get recent foods
+          const { data: diaryData, error: diaryError } = await supabase
+            .from('diary_entries')
             .select(`
-              food_id,
-              last_used_at,
-              usage_count,
-              foods (
-                name,
-                brand,
-                image_path,
-                nutrients_per_100g
-              )
+              items,
+              created_at
             `)
             .eq('user_id', userId)
-            .order('last_used_at', { ascending: false })
-            .limit(15); // Reduced limit for better performance
+            .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: false })
+            .limit(100);
 
-          if (fallbackError) {
-            // If table doesn't exist, return empty array
-            if (fallbackError.code === '42P01') {
-              console.warn('recent_foods table not found, returning empty array');
-              return [];
-            }
-            throw fallbackError;
+          if (diaryError) {
+            console.warn('Diary entries fallback failed:', diaryError);
+            return [];
           }
 
-          // Transform data to match expected format
-          return fallbackData?.map(item => {
-            const food = Array.isArray(item.foods) ? item.foods[0] : item.foods;
-            const nutrients = food?.nutrients_per_100g || {};
-            return {
-              food_id: item.food_id,
-              name: food?.name || '',
-              brand: food?.brand || '',
-              image_url: food?.image_path || '',
-              calories_per_100g: nutrients.calories_kcal || 0,
-              protein_per_100g: nutrients.protein_g || 0,
-              carbs_per_100g: nutrients.carbs_g || 0,
-              fat_per_100g: nutrients.fat_g || 0,
-              last_quantity: 100,
-              last_unit: 'g',
-              use_count: item.usage_count,
-              last_used_at: item.last_used_at,
-            };
-          }) || [];
+          // Extract unique foods from diary entries
+          const foodMap = new Map();
+          
+          diaryData?.forEach(entry => {
+            const items = entry.items || [];
+            items.forEach((item: any) => {
+              if (item.food_id && !foodMap.has(item.food_id)) {
+                foodMap.set(item.food_id, {
+                  food_id: item.food_id,
+                  name: item.name || '',
+                  brand: item.brand || '',
+                  image_url: '',
+                  calories_per_100g: 0,
+                  protein_per_100g: 0,
+                  carbs_per_100g: 0,
+                  fat_per_100g: 0,
+                  last_quantity: item.quantity || 100,
+                  last_unit: item.serving || 'g',
+                  use_count: 1,
+                  last_used_at: entry.created_at,
+                });
+              }
+            });
+          });
+
+          return Array.from(foodMap.values()).slice(0, 15);
         }
-        throw error;
+        
+        return data as RecentFood[];
+      } catch (err) {
+        console.warn('Recent foods query failed completely:', err);
+        // Return empty array instead of throwing to prevent infinite retries
+        return [];
       }
-      return data as RecentFood[];
     },
     enabled: !!userId && userId !== '',
-    staleTime: cacheTime.medium, // Increased cache time
-    gcTime: cacheTime.long, // Keep in cache longer
+    staleTime: cacheTime.medium,
+    gcTime: cacheTime.long,
+    retry: false, // Disable retries to prevent infinite loops
+    refetchOnWindowFocus: false, // Prevent refetch on window focus
+    refetchOnMount: false, // Prevent refetch on mount after first load
   });
 
   // Toggle favorite mutation

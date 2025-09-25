@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
-import { ModeToggle } from "@/components/mode-toggle";
+
 import BottomTabs from "./(components)/BottomTabs";
 import DesktopTabs from "./(components)/DesktopTabs";
 import { PullToRefreshWrapper } from "./(components)/PullToRefreshWrapper";
