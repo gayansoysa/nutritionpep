@@ -113,15 +113,14 @@ export default async function AnalyticsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <TrendingUpIcon className="h-6 w-6 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">Analytics</h1>
+            <h2 className="text-2xl font-bold">Analytics</h2>
             <p className="text-muted-foreground">Track your nutrition progress and trends</p>
           </div>
         </div>
         <Button variant="outline" size="sm">
           <CalendarIcon className="w-4 h-4 mr-2" />
-          Export Report
+          Export
         </Button>
       </div>
 

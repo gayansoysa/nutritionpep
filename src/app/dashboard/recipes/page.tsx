@@ -215,11 +215,11 @@ export default function RecipesPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Recipes</h1>
+          <h2 className="text-2xl font-bold">Recipes</h2>
           <p className="text-muted-foreground">Discover and create delicious recipes</p>
         </div>
         <Button onClick={() => router.push('/dashboard/recipes/create')}>

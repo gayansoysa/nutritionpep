@@ -286,7 +286,8 @@ export default function SearchPage() {
     <SearchErrorBoundary>
       <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold gradient-text">Find Your Food</h1>
+       
+        <h2 className="text-2xl font-bold gradient-text">Find Your Food</h2>
         <p className="text-muted-foreground">Search our database of thousands of foods</p>
       </div>
       

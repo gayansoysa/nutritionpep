@@ -92,7 +92,7 @@ export default async function TodayPage() {
       {/* Header with Date */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <CalendarIcon className="h-5 w-5 text-muted-foreground" />
+         
           <div>
             <h2 className="text-2xl font-bold">Today</h2>
             <p className="text-sm text-muted-foreground">
