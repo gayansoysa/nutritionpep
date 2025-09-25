@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FoodImage } from "@/components/ui/food-image";
 import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
 interface MealTemplate {

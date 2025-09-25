@@ -5,7 +5,7 @@ import { ErrorBoundary as ReactErrorBoundary } from 'react-error-boundary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, RefreshCw, Home, Bug } from 'lucide-react'
-import { toast } from '@/lib/utils/toast'
+import { toast } from 'sonner'
 
 interface ErrorFallbackProps {
   error: Error
@@ -18,12 +18,7 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
   const handleReportError = () => {
     // In a real app, you'd send this to your error reporting service
     console.error('Error reported:', error)
-    toast.success('Error report sent. Thank you!', {
-      action: {
-        label: 'View Status',
-        onClick: () => window.open('https://status.nutritionpep.com', '_blank')
-      }
-    })
+    toast.success('Error report sent. Thank you!')
   }
 
   const handleGoHome = () => {

@@ -17,7 +17,7 @@ import {
   Legend
 } from "recharts";
 import { StatCardSkeleton, CardSkeleton } from "@/components/ui/table-skeleton";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 export default function AnalyticsDashboard() {
   const [isLoading, setIsLoading] = useState(true);

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { enhancedExternalAPIService } from '@/lib/services/external-apis-enhanced'
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     const sortBy = searchParams.get('sortBy') || 'relevance' // relevance, name, calories
     const sortOrder = searchParams.get('sortOrder') || 'asc'
+    const includeExternal = searchParams.get('includeExternal') === 'true'
 
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -94,7 +96,7 @@ export async function GET(request: NextRequest) {
     const total = count || 0
     const hasMore = offset + pageSize < total
 
-    // Transform data to match expected format
+    // Transform local data to match expected format
     const transformedData = (data || []).map(food => {
       const nutrients = food.nutrients_per_100g || {}
       return {
@@ -115,13 +117,48 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // If no local results and external search is requested, search external APIs
+    if (transformedData.length === 0 && includeExternal && page === 0) {
+      try {
+        console.log('No local results, searching external APIs for:', query)
+        
+        // Call the external API endpoint directly
+        const externalResponse = await fetch(`${process.env.APP_BASE_URL}/api/foods/search-external?q=${encodeURIComponent(query)}&limit=${pageSize}&offset=${offset}`)
+        const externalData = await externalResponse.json()
+        
+        if (externalResponse.ok && externalData.foods && externalData.foods.length > 0) {
+          // Mark external foods and add pagination info
+          const externalFoods = externalData.foods.map((food: any) => ({
+            ...food,
+            isExternal: true,
+            source: externalData.metadata?.source || 'external'
+          }))
+          
+          return NextResponse.json({
+            data: externalFoods,
+            hasMore: externalData.pagination?.hasMore || false,
+            total: externalData.pagination?.total || externalFoods.length,
+            page,
+            pageSize,
+            query,
+            isExternal: true,
+            source: externalData.metadata?.source || 'external'
+          })
+        }
+      } catch (externalError) {
+        console.error('External search error:', externalError)
+        // Continue with empty local results if external search fails
+      }
+    }
+
     return NextResponse.json({
       data: transformedData,
       hasMore,
       total,
       page,
       pageSize,
-      query
+      query,
+      isExternal: false
     })
   } catch (error) {
     console.error('Unexpected error:', error)

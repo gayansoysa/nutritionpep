@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Copy, CheckCircle, AlertTriangle, User } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 interface AdminAccessRequiredProps {
   userEmail?: string;

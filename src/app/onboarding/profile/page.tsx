@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { profileSchema, type ProfileFormData } from "@/lib/validations/schemas";
 
 import { Button } from "@/components/ui/button";

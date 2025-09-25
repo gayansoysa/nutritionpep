@@ -20,7 +20,7 @@ import {
   Users,
   Settings
 } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 interface SecurityCheck {
   id: string;

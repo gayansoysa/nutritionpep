@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 export default function DebugAuthPage() {
   const [authState, setAuthState] = useState<any>(null);

@@ -23,7 +23,7 @@ import {
   ReloadIcon,
   ImageIcon
 } from "@radix-ui/react-icons";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { NormalizedFood } from "@/lib/services/external-apis-enhanced";
 
 interface ExternalFoodSearchProps {

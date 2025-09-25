@@ -114,7 +114,7 @@ export default function CreateRecipePage() {
 
       const result = await response.json();
       toast.success('Recipe created successfully!');
-      router.push(`/recipes/${result.recipe.id}`);
+      router.push(`/dashboard/recipes/${result.recipe.id}`);
     } catch (error) {
       console.error('Error creating recipe:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to create recipe');

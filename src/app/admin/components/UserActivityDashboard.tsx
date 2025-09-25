@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { Search, Calendar, TrendingUp, Users, Activity, Eye } from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {

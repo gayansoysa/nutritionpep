@@ -27,7 +27,7 @@ import {
   Download,
   BarChart3
 } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 interface BetaTester {
   id: string;

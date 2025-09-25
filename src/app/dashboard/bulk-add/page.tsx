@@ -10,7 +10,7 @@ import { BulkFoodSelector, SelectedFood, Food } from "@/components/ui/bulk-food-
 import { CopyMealDialog } from "@/components/ui/copy-meal-dialog";
 import { MealTemplatesDialog } from "@/components/ui/meal-templates-dialog";
 import { ArrowLeft, Plus, Copy, BookOpen } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 export default function BulkAddPage() {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);

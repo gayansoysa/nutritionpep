@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMemo, useCallback } from "react";
 import MealSection from "./MealSection";
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snack";
@@ -39,12 +40,19 @@ interface MealSectionsProps {
 export default function MealSections({ entries }: MealSectionsProps) {
   const router = useRouter();
 
-  const handleItemRemoved = () => {
+  const handleItemRemoved = useCallback(() => {
     router.refresh();
-  };
+  }, [router]);
 
-  const totalMealCalories = entries?.reduce((sum, entry) => sum + entry.totals.calories_kcal, 0) || 0;
-  const totalMealItems = entries?.reduce((sum, entry) => sum + entry.items.length, 0) || 0;
+  // Memoize expensive calculations
+  const { totalMealCalories, totalMealItems } = useMemo(() => {
+    if (!entries) return { totalMealCalories: 0, totalMealItems: 0 };
+    
+    return {
+      totalMealCalories: entries.reduce((sum, entry) => sum + entry.totals.calories_kcal, 0),
+      totalMealItems: entries.reduce((sum, entry) => sum + entry.items.length, 0)
+    };
+  }, [entries]);
 
   return (
     <div className="space-y-4">
@@ -60,18 +68,13 @@ export default function MealSections({ entries }: MealSectionsProps) {
       </div>
       
       <div className="grid gap-4">
-        {["breakfast", "lunch", "dinner", "snack"].map((mealType, index) => (
-          <div 
+        {["breakfast", "lunch", "dinner", "snack"].map((mealType) => (
+          <MealSection 
             key={mealType}
-            className="animate-bounce-in"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <MealSection 
-              mealType={mealType as any}
-              entry={entries?.find(e => e.meal_type === mealType)}
-              onItemRemoved={handleItemRemoved}
-            />
-          </div>
+            mealType={mealType as any}
+            entry={entries?.find(e => e.meal_type === mealType)}
+            onItemRemoved={handleItemRemoved}
+          />
         ))}
       </div>
     </div>

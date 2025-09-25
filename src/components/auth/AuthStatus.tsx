@@ -11,8 +11,8 @@ interface AuthStatusProps {
 }
 
 export default function AuthStatus({ showDetails = false }: AuthStatusProps) {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<any>(undefined);
+  const [profile, setProfile] = useState<any>(undefined);
   const [loading, setLoading] = useState(true);
   const supabase = createSupabaseBrowserClient();
 
@@ -44,7 +44,7 @@ export default function AuthStatus({ showDetails = false }: AuthStatusProps) {
         
         setProfile(profile);
       } else {
-        setProfile(null);
+        setProfile(undefined);
       }
     } catch (error) {
       console.error("Auth check error:", error);

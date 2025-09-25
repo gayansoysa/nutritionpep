@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { FoodImage } from "@/components/ui/food-image";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
 interface DiaryEntry {

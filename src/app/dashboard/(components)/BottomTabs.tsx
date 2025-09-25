@@ -26,6 +26,12 @@ export default function BottomTabs() {
       badge: null,
     },
     {
+      name: "History",
+      href: "/dashboard/history",
+      icon: <CalendarIcon className="h-6 w-6" />,
+      badge: null,
+    },
+    {
       name: "Analytics",
       href: "/dashboard/analytics",
       icon: <BarChartIcon className="h-6 w-6" />,
@@ -33,20 +39,8 @@ export default function BottomTabs() {
     },
     {
       name: "Recipes",
-      href: "/recipes",
+      href: "/dashboard/recipes",
       icon: <Book className="h-6 w-6" />,
-      badge: null,
-    },
-    {
-      name: "Search",
-      href: "/dashboard/search",
-      icon: <MagnifyingGlassIcon className="h-6 w-6" />,
-      badge: null,
-    },
-    {
-      name: "Settings",
-      href: "/dashboard/settings",
-      icon: <GearIcon className="h-6 w-6" />,
       badge: null,
     },
   ];

@@ -22,7 +22,7 @@ import {
   Database,
   Lock
 } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import SecurityAuditChecklist from "@/app/admin/components/SecurityAuditChecklist";
 import LoadTestingTools from "@/app/admin/components/LoadTestingTools";
 import ProductionReadinessCheck from "@/app/admin/components/ProductionReadinessCheck";

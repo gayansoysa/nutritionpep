@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Clock, TrendingUp, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
 interface RecentFood {
@@ -45,14 +44,14 @@ export default function RecentFoodsCarousel({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchRecentFoods = async () => {
+  const fetchRecentFoods = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
       const params = new URLSearchParams({
         type,
-        limit: limit.toString()
+        limit: Math.min(limit, 10).toString() // Limit to max 10 for better performance
       })
       
       if (mealType) params.append('meal_type', mealType)
@@ -84,13 +83,13 @@ export default function RecentFoodsCarousel({
     } finally {
       setLoading(false)
     }
-  }
+  }, [type, mealType, limit])
 
   useEffect(() => {
     fetchRecentFoods()
-  }, [type, mealType, limit])
+  }, [fetchRecentFoods])
 
-  const handleAddFood = async (food: RecentFood) => {
+  const handleAddFood = useCallback(async (food: RecentFood) => {
     if (onAddFood) {
       onAddFood(food)
     } else {
@@ -102,7 +101,7 @@ export default function RecentFoodsCarousel({
       })
       window.location.href = `/dashboard/search?${params}`
     }
-  }
+  }, [onAddFood])
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % Math.max(1, foods.length - 2))
@@ -218,69 +217,62 @@ export default function RecentFoodsCarousel({
       </div>
 
       <div className="relative overflow-hidden">
-        <motion.div
-          className="flex gap-3"
-          animate={{ x: -currentIndex * 272 }} // 256px width + 16px gap
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        <div
+          className="flex gap-3 transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 272}px)` }}
         >
-          <AnimatePresence>
-            {foods.map((food, index) => (
-              <motion.div
-                key={food.id}
-                className="flex-shrink-0 w-64"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="hover:shadow-md transition-shadow cursor-pointer group">
-                  <CardContent className="p-4">
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                          {food.name}
-                        </h4>
-                        {food.brand && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {food.brand}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{formatLastUsed(food.last_used_at)}</span>
-                        <Badge variant="outline" className="text-xs px-1 py-0">
-                          {food.usage_count}x
-                        </Badge>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs text-muted-foreground">
-                          {Math.round(food.calories_per_100g)} cal/100g
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => handleAddFood(food)}
-                          className="h-7 px-2 text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
-                      </div>
-
-                      {type === 'smart' && food.suggestion_score && (
-                        <div className="text-xs text-muted-foreground">
-                          Match: {Math.round(food.suggestion_score * 10)}%
-                        </div>
+          {foods.map((food, index) => (
+            <div
+              key={food.id}
+              className="flex-shrink-0 w-64"
+            >
+              <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                        {food.name}
+                      </h4>
+                      {food.brand && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {food.brand}
+                        </p>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{formatLastUsed(food.last_used_at)}</span>
+                      <Badge variant="outline" className="text-xs px-1 py-0">
+                        {food.usage_count}x
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        {Math.round(food.calories_per_100g)} cal/100g
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddFood(food)}
+                        className="h-7 px-2 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add
+                      </Button>
+                    </div>
+
+                    {type === 'smart' && food.suggestion_score && (
+                      <div className="text-xs text-muted-foreground">
+                        Match: {Math.round(food.suggestion_score * 10)}%
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

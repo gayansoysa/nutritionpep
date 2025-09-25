@@ -26,19 +26,19 @@ export function FavoriteButton({
   className,
   showText = false,
 }: FavoriteButtonProps) {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>('');
   const supabase = createSupabaseBrowserClient();
 
   // Get current user
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
+      setUserId(user?.id || '');
     };
     getUser();
   }, [supabase]);
 
-  const { isFavorite, toggleFavorite, isToggling } = useFavorites(userId || undefined);
+  const { isFavorite, toggleFavorite, isToggling } = useFavorites(userId);
   
   const favorited = isFavorite(foodId);
 
@@ -46,11 +46,14 @@ export function FavoriteButton({
     e.preventDefault();
     e.stopPropagation();
     
-    if (!userId) return;
+    if (!userId || userId === '') return;
     toggleFavorite(foodId, quantity, unit);
   };
 
-  if (!userId) return null;
+  // Don't render if no user - but don't return early to avoid hooks violations
+  if (!userId || userId === '') {
+    return <div style={{ display: 'none' }} />;
+  }
 
   return (
     <Button

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInfiniteSearch } from '@/lib/hooks/useInfiniteScroll'
 import { apiClient } from '@/lib/utils/api-client'
@@ -28,6 +28,8 @@ interface Food {
     fat_g: number
     fiber_g?: number
   }
+  isExternal?: boolean
+  source?: string
 }
 
 interface InfiniteFoodSearchProps {
@@ -47,6 +49,7 @@ export default function InfiniteFoodSearch({
   const [sortBy, setSortBy] = useState<string>('relevance')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [showFilters, setShowFilters] = useState(false)
+  const [isAddingExternalFood, setIsAddingExternalFood] = useState(false)
 
   const searchFunction = useCallback(async (query: string, page: number, pageSize: number) => {
     const params = new URLSearchParams({
@@ -54,7 +57,8 @@ export default function InfiniteFoodSearch({
       page: page.toString(),
       pageSize: pageSize.toString(),
       sortBy,
-      sortOrder
+      sortOrder,
+      includeExternal: 'true' // Enable external search fallback
     })
 
     if (category && category !== 'all') {
@@ -66,7 +70,9 @@ export default function InfiniteFoodSearch({
     return {
       data: response.data || [],
       hasMore: response.hasMore || false,
-      total: response.total || 0
+      total: response.total || 0,
+      isExternal: response.isExternal || false,
+      source: response.source
     }
   }, [category, sortBy, sortOrder])
 
@@ -85,6 +91,13 @@ export default function InfiniteFoodSearch({
     pageSize: 20,
     debounceMs: 300
   })
+
+  // Show toast when external results are found
+  useEffect(() => {
+    if (foods.length > 0 && foods[0]?.isExternal && !isLoading) {
+      toast.success(`Found ${foods.length} foods from ${foods[0].source || 'external'} database`)
+    }
+  }, [foods, isLoading])
 
   const categories = [
     'Fruits',
@@ -105,6 +118,57 @@ export default function InfiniteFoodSearch({
     setCategory('all')
     setSortBy('relevance')
     setSortOrder('asc')
+  }
+
+  const handleExternalFoodSelection = async (food: Food & { isExternal?: boolean }) => {
+    // If it's not an external food, handle normally
+    if (!food.isExternal) {
+      onSelectFood(food)
+      return
+    }
+
+    setIsAddingExternalFood(true)
+    
+    try {
+      // Add the external food to our database
+      const response = await fetch('/api/foods/add-external', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ food }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add food to database')
+      }
+
+      // Update the food object with the new database ID
+      const updatedFood = {
+        ...food,
+        id: result.food_id,
+        isExternal: false // Mark as no longer external since it's now in our DB
+      }
+
+      onSelectFood(updatedFood)
+      toast.success('Food added to database successfully!')
+
+    } catch (error: any) {
+      console.error('Error adding external food:', error)
+      toast.error(error.message || 'Failed to add food to database')
+    } finally {
+      setIsAddingExternalFood(false)
+    }
+  }
+
+  const handleFoodSelection = async (food: Food) => {
+    if (food.isExternal) {
+      await handleExternalFoodSelection(food)
+    } else {
+      onSelectFood(food)
+    }
   }
 
   const activeFiltersCount = useMemo(() => {
@@ -277,11 +341,18 @@ export default function InfiniteFoodSearch({
                       <div className="flex justify-between items-start">
                         <div 
                           className="flex-1 cursor-pointer"
-                          onClick={() => onSelectFood(food)}
+                          onClick={() => handleFoodSelection(food)}
                         >
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                            {food.name}
-                          </h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                              {food.name}
+                            </h3>
+                            {food.isExternal && (
+                              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                External Source
+                              </Badge>
+                            )}
+                          </div>
                           {food.brand && (
                             <p className="text-sm text-muted-foreground mt-1">{food.brand}</p>
                           )}
@@ -318,18 +389,25 @@ export default function InfiniteFoodSearch({
                         <div className="flex items-center gap-2 ml-4">
                           <Button
                             size="sm"
-                            onClick={() => onSelectFood(food)}
+                            onClick={() => handleFoodSelection(food)}
+                            disabled={isAddingExternalFood}
                             className="h-8 px-3"
                           >
-                            <PlusIcon className="h-3 w-3 mr-1" />
-                            Add
+                            {isAddingExternalFood ? (
+                              <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin mr-1" />
+                            ) : (
+                              <PlusIcon className="h-3 w-3 mr-1" />
+                            )}
+                            {food.isExternal ? 'Import' : 'Add'}
                           </Button>
                           
-                          <FavoriteButton
-                            foodId={food.id}
-                            size="sm"
-                            variant="ghost"
-                          />
+                          {!food.isExternal && (
+                            <FavoriteButton
+                              foodId={food.id}
+                              size="sm"
+                              variant="ghost"
+                            />
+                          )}
                         </div>
                       </div>
                     </CardContent>

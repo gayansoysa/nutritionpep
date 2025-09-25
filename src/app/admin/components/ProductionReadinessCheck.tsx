@@ -20,7 +20,7 @@ import {
   Monitor,
   RefreshCw
 } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 interface ReadinessCheck {
   id: string;

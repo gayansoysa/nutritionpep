@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { PaginationWithInfo } from "@/components/ui/pagination";
 import { DeleteConfirmationDialog, useDeleteConfirmation } from "@/components/ui/delete-confirmation-dialog";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 type Food = {
   id: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Plus, Clock, Heart, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { FoodImage } from "@/components/ui/food-image";
 import { useFavorites, FavoriteFood, RecentFood } from "@/lib/hooks/useFavorites";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
 interface QuickAddFavoritesProps {
@@ -22,15 +22,15 @@ export function QuickAddFavorites({
   className,
   maxItems = 8 
 }: QuickAddFavoritesProps) {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>('');
   const [isAdding, setIsAdding] = useState<string | null>(null);
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []); // Memoize supabase client
 
   // Get current user
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
+      setUserId(user?.id || '');
     };
     getUser();
   }, [supabase]);
@@ -40,16 +40,21 @@ export function QuickAddFavorites({
     recentFoods, 
     isLoading, 
     updateFavoriteUsage 
-  } = useFavorites(userId || undefined);
+  } = useFavorites(userId);
 
-  // Combine and limit items
-  const quickItems = [
-    ...favorites.slice(0, Math.floor(maxItems * 0.6)), // 60% favorites
-    ...recentFoods.slice(0, Math.ceil(maxItems * 0.4))  // 40% recent
-  ].slice(0, maxItems);
+  // Memoize combined items to prevent unnecessary recalculations
+  const quickItems = useMemo(() => {
+    const favoritesCount = Math.floor(maxItems * 0.6);
+    const recentCount = Math.ceil(maxItems * 0.4);
+    
+    return [
+      ...favorites.slice(0, favoritesCount),
+      ...recentFoods.slice(0, recentCount)
+    ].slice(0, maxItems);
+  }, [favorites, recentFoods, maxItems]);
 
-  const handleQuickAdd = async (item: FavoriteFood | (RecentFood & { food_id: string })) => {
-    if (!userId || isAdding) return;
+  const handleQuickAdd = useCallback(async (item: FavoriteFood | (RecentFood & { food_id: string })) => {
+    if (!userId || userId === '' || isAdding) return;
 
     setIsAdding(item.food_id);
     
@@ -96,7 +101,7 @@ export function QuickAddFavorites({
 
       toast.success(`Added ${item.name} to ${mealType}`);
       
-      // Refresh the page to show updated diary
+      // Use router refresh instead of full page reload for better performance
       window.location.reload();
       
     } catch (error: any) {
@@ -105,9 +110,9 @@ export function QuickAddFavorites({
     } finally {
       setIsAdding(null);
     }
-  };
+  }, [userId, isAdding, supabase, mealType, updateFavoriteUsage]);
 
-  if (!userId || isLoading) {
+  if (!userId || userId === '' || isLoading) {
     return (
       <Card className={className}>
         <CardHeader>

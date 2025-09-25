@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { queryKeys, cacheTime } from '@/lib/react-query/client';
-import { toast } from '@/lib/utils/toast';
+import { toast } from 'sonner';
 
 export interface FavoriteFood {
   id: string;
@@ -49,7 +49,7 @@ export function useFavorites(userId?: string) {
   } = useQuery({
     queryKey: queryKeys.user.favorites(userId || ''),
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId || userId === '') return [];
       
       const { data, error } = await supabase.rpc('get_user_favorites', {
         user_uuid: userId
@@ -76,7 +76,8 @@ export function useFavorites(userId?: string) {
               )
             `)
             .eq('user_id', userId)
-            .order('last_used_at', { ascending: false });
+            .order('last_used_at', { ascending: false })
+            .limit(20); // Add limit for better performance
 
           if (fallbackError) {
             // If table doesn't exist, return empty array
@@ -112,9 +113,9 @@ export function useFavorites(userId?: string) {
       }
       return data as FavoriteFood[];
     },
-    enabled: !!userId,
-    staleTime: cacheTime.medium,
-    gcTime: cacheTime.long,
+    enabled: !!userId && userId !== '',
+    staleTime: cacheTime.long, // Increased cache time
+    gcTime: cacheTime.veryLong, // Keep in cache longer
   });
 
   // Get user's recent foods (excluding favorites)
@@ -125,11 +126,11 @@ export function useFavorites(userId?: string) {
   } = useQuery({
     queryKey: queryKeys.user.recentFoods(userId || ''),
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId || userId === '') return [];
       
       const { data, error } = await supabase.rpc('get_user_recent_foods', {
         user_uuid: userId,
-        limit_count: 20
+        limit_count: 15 // Reduced limit for better performance
       });
 
       if (error) {
@@ -151,7 +152,7 @@ export function useFavorites(userId?: string) {
             `)
             .eq('user_id', userId)
             .order('last_used_at', { ascending: false })
-            .limit(20);
+            .limit(15); // Reduced limit for better performance
 
           if (fallbackError) {
             // If table doesn't exist, return empty array
@@ -186,9 +187,9 @@ export function useFavorites(userId?: string) {
       }
       return data as RecentFood[];
     },
-    enabled: !!userId,
-    staleTime: cacheTime.short,
-    gcTime: cacheTime.medium,
+    enabled: !!userId && userId !== '',
+    staleTime: cacheTime.medium, // Increased cache time
+    gcTime: cacheTime.long, // Keep in cache longer
   });
 
   // Toggle favorite mutation
@@ -202,7 +203,7 @@ export function useFavorites(userId?: string) {
       quantity?: number; 
       unit?: string; 
     }) => {
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId || userId === '') throw new Error('User not authenticated');
       
       const { data, error } = await supabase.rpc('toggle_favorite', {
         user_uuid: userId,
@@ -238,7 +239,7 @@ export function useFavorites(userId?: string) {
   // Update favorite usage mutation
   const updateUsageMutation = useMutation({
     mutationFn: async (foodId: string) => {
-      if (!userId) throw new Error('User not authenticated');
+      if (!userId || userId === '') throw new Error('User not authenticated');
       
       const { error } = await supabase.rpc('update_favorite_usage', {
         user_uuid: userId,
@@ -342,7 +343,7 @@ export function useIsFavorite(userId: string, foodId: string) {
       if (error) throw error;
       return !!data;
     },
-    enabled: !!userId && !!foodId,
+    enabled: !!userId && userId !== '' && !!foodId,
     staleTime: cacheTime.medium,
   });
 }

@@ -7,23 +7,23 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Cache data for 5 minutes by default
-      staleTime: 1000 * 60 * 5,
-      // Keep data in cache for 10 minutes
-      gcTime: 1000 * 60 * 10,
-      // Retry failed requests 3 times with exponential backoff
+      // Cache data for 15 minutes by default (increased for better performance)
+      staleTime: 1000 * 60 * 15,
+      // Keep data in cache for 30 minutes (increased)
+      gcTime: 1000 * 60 * 30,
+      // Retry failed requests 2 times with exponential backoff (reduced)
       retry: (failureCount, error: any) => {
         // Don't retry on 4xx errors (client errors)
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 2;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 10000), // Faster retries
       // Refetch on window focus for critical data
       refetchOnWindowFocus: false,
       // Don't refetch on reconnect by default
-      refetchOnReconnect: 'always',
+      refetchOnReconnect: false, // Changed to false for better performance
     },
     mutations: {
       // Retry mutations once on network errors
@@ -73,16 +73,16 @@ export const queryKeys = {
   },
 } as const;
 
-// Cache time presets for different data types
+// Cache time presets for different data types (optimized for performance)
 export const cacheTime = {
   // Very short cache for real-time data
-  realtime: 1000 * 30, // 30 seconds
+  realtime: 1000 * 60, // 1 minute (increased)
   // Short cache for frequently changing data
-  short: 1000 * 60 * 2, // 2 minutes
+  short: 1000 * 60 * 5, // 5 minutes (increased)
   // Medium cache for semi-static data
-  medium: 1000 * 60 * 5, // 5 minutes
+  medium: 1000 * 60 * 15, // 15 minutes (increased)
   // Long cache for static data
-  long: 1000 * 60 * 30, // 30 minutes
+  long: 1000 * 60 * 60, // 1 hour (increased)
   // Very long cache for rarely changing data
   veryLong: 1000 * 60 * 60 * 24, // 24 hours
 } as const;

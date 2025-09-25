@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import { ModeToggle } from "@/components/mode-toggle";
 import BottomTabs from "./(components)/BottomTabs";
+import DesktopTabs from "./(components)/DesktopTabs";
 import { PullToRefreshWrapper } from "./(components)/PullToRefreshWrapper";
 import { TransitionLayout } from "@/components/layout/TransitionLayout";
 
@@ -51,34 +52,7 @@ export default async function DashboardLayout({
           </div>
           
           {/* Desktop Tabs */}
-          <div className="hidden sm:flex border-b border-border/50 mb-6">
-            <nav className="flex gap-6">
-              <a 
-                href="/dashboard/today"
-                className="py-3 px-1 border-b-2 border-primary font-medium text-sm text-primary bg-primary/5 rounded-t-lg transition-all"
-              >
-                Today
-              </a>
-              <a 
-                href="/dashboard/history"
-                className="py-3 px-1 border-b-2 border-transparent hover:border-primary/30 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
-              >
-                History
-              </a>
-              <a 
-                href="/dashboard/analytics"
-                className="py-3 px-1 border-b-2 border-transparent hover:border-primary/30 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
-              >
-                Analytics
-              </a>
-              <a 
-                href="/recipes"
-                className="py-3 px-1 border-b-2 border-transparent hover:border-primary/30 text-muted-foreground hover:text-foreground font-medium text-sm transition-all"
-              >
-                Recipes
-              </a>
-            </nav>
-          </div>
+          <DesktopTabs />
           
           {/* Main Content */}
           <div className="pb-20 sm:pb-0">

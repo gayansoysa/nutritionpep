@@ -93,7 +93,7 @@ export default function RecipesPage() {
   const RecipeCard = ({ recipe }: { recipe: RecipeWithUser }) => (
     <Card 
       className="cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => router.push(`/recipes/${recipe.id}`)}
+      onClick={() => router.push(`/dashboard/recipes/${recipe.id}`)}
     >
       <div className="aspect-video relative overflow-hidden rounded-t-lg">
         {recipe.image_url ? (
@@ -155,7 +155,7 @@ export default function RecipesPage() {
   const RecipeListItem = ({ recipe }: { recipe: RecipeWithUser }) => (
     <Card 
       className="cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => router.push(`/recipes/${recipe.id}`)}
+      onClick={() => router.push(`/dashboard/recipes/${recipe.id}`)}
     >
       <CardContent className="p-4">
         <div className="flex gap-4">
@@ -222,7 +222,7 @@ export default function RecipesPage() {
           <h1 className="text-3xl font-bold">Recipes</h1>
           <p className="text-muted-foreground">Discover and create delicious recipes</p>
         </div>
-        <Button onClick={() => router.push('/recipes/create')}>
+        <Button onClick={() => router.push('/dashboard/recipes/create')}>
           <Plus className="w-4 h-4 mr-2" />
           Create Recipe
         </Button>
@@ -252,36 +252,36 @@ export default function RecipesPage() {
         </div>
         
         <div className="flex gap-2">
-          <Select value={searchParams.category || ''} onValueChange={(value) => handleFilterChange('category', value || undefined)}>
+          <Select value={searchParams.category || 'all'} onValueChange={(value) => handleFilterChange('category', value === 'all' ? undefined : value)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
               {RECIPE_CATEGORIES.map(category => (
                 <SelectItem key={category} value={category}>{category}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={searchParams.cuisine || ''} onValueChange={(value) => handleFilterChange('cuisine', value || undefined)}>
+          <Select value={searchParams.cuisine || 'all'} onValueChange={(value) => handleFilterChange('cuisine', value === 'all' ? undefined : value)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Cuisine" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Cuisines</SelectItem>
+              <SelectItem value="all">All Cuisines</SelectItem>
               {RECIPE_CUISINES.map(cuisine => (
                 <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={searchParams.difficulty || ''} onValueChange={(value) => handleFilterChange('difficulty', value || undefined)}>
+          <Select value={searchParams.difficulty || 'all'} onValueChange={(value) => handleFilterChange('difficulty', value === 'all' ? undefined : value)}>
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Difficulty" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Levels</SelectItem>
+              <SelectItem value="all">All Levels</SelectItem>
               <SelectItem value="easy">Easy</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="hard">Hard</SelectItem>
@@ -322,7 +322,7 @@ export default function RecipesPage() {
       ) : recipes.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">No recipes found</p>
-          <Button onClick={() => router.push('/recipes/create')}>
+          <Button onClick={() => router.push('/dashboard/recipes/create')}>
             <Plus className="w-4 h-4 mr-2" />
             Create Your First Recipe
           </Button>

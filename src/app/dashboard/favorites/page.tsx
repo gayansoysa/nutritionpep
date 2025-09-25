@@ -12,11 +12,11 @@ import { FoodImage } from "@/components/ui/food-image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { useFavorites } from "@/lib/hooks/useFavorites";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
 export default function FavoritesPage() {
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string>('');
   const [selectedMeal, setSelectedMeal] = useState<string>("breakfast");
   const [isAdding, setIsAdding] = useState<string | null>(null);
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function FavoritesPage() {
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
+      setUserId(user?.id || '');
     };
     getUser();
   }, [supabase]);
@@ -37,10 +37,10 @@ export default function FavoritesPage() {
     isLoading, 
     updateFavoriteUsage,
     toggleFavorite 
-  } = useFavorites(userId || undefined);
+  } = useFavorites(userId);
 
   const handleQuickAdd = async (item: any, meal: string) => {
-    if (!userId || isAdding) return;
+    if (!userId || userId === '' || isAdding) return;
 
     setIsAdding(item.food_id);
     

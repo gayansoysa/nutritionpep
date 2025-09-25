@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { toast } from '@/lib/utils/toast'
+import { toast } from 'sonner'
 
 interface NetworkStatus {
   isOnline: boolean
@@ -40,12 +40,12 @@ export function useNetworkStatus() {
 
     const handleOnline = () => {
       updateNetworkStatus()
-      toast.online('Connection restored')
+      toast.success('Connection restored')
     }
 
     const handleOffline = () => {
       updateNetworkStatus()
-      toast.offline('Connection lost. Some features may not work.')
+      toast.error('Connection lost. Some features may not work.')
     }
 
     const handleConnectionChange = () => {

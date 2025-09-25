@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FoodImage } from "@/components/ui/food-image";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { MagnifyingGlassIcon, PlusIcon } from "@radix-ui/react-icons";
 
 type ImportedFood = {

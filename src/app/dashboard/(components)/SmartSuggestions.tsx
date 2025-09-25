@@ -1,11 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Lightbulb, Clock, TrendingUp, Plus } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import RecentFoodsCarousel from './RecentFoodsCarousel'
 
 interface SmartSuggestionsProps {
@@ -24,19 +19,20 @@ export default function SmartSuggestions({
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
-    }, 60000) // Update every minute
+    }, 300000) // Update every 5 minutes instead of every minute for better performance
 
     return () => clearInterval(timer)
   }, [])
 
-  const getMealTypeFromTime = (hour: number): string => {
+  // Memoize helper functions to prevent recreation on every render
+  const getMealTypeFromTime = useCallback((hour: number): string => {
     if (hour >= 5 && hour < 11) return 'breakfast'
     if (hour >= 11 && hour < 16) return 'lunch'
     if (hour >= 16 && hour < 21) return 'dinner'
     return 'snacks'
-  }
+  }, [])
 
-  const getMealEmoji = (meal: string): string => {
+  const getMealEmoji = useCallback((meal: string): string => {
     switch (meal.toLowerCase()) {
       case 'breakfast': return '🌅'
       case 'lunch': return '☀️'
@@ -44,35 +40,24 @@ export default function SmartSuggestions({
       case 'snacks': return '🍎'
       default: return '🍽️'
     }
-  }
+  }, [])
 
-  const currentHour = currentTime.getHours()
-  const suggestedMeal = currentMeal || getMealTypeFromTime(currentHour)
-  const timeBasedMessage = getTimeBasedMessage(currentHour)
+  // Memoize expensive calculations
+  const { currentHour, suggestedMeal, timeBasedMessage } = useMemo(() => {
+    const hour = currentTime.getHours()
+    const meal = currentMeal || getMealTypeFromTime(hour)
+    const message = getTimeBasedMessage(hour)
+    
+    return {
+      currentHour: hour,
+      suggestedMeal: meal,
+      timeBasedMessage: message
+    }
+  }, [currentTime, currentMeal, getMealTypeFromTime])
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Time-based suggestion header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Lightbulb className="h-5 w-5 text-primary" />
-              <span className="font-medium text-primary">Smart Suggestions</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {timeBasedMessage} {getMealEmoji(suggestedMeal)}
-            </p>
-            <Badge variant="secondary" className="mt-2">
-              {suggestedMeal.charAt(0).toUpperCase() + suggestedMeal.slice(1)} Time
-            </Badge>
-          </CardContent>
-        </Card>
-      </motion.div>
+      
 
       {/* Smart suggestions carousel */}
       <RecentFoodsCarousel

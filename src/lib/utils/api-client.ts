@@ -3,12 +3,15 @@
 import React from 'react'
 import { toast } from 'sonner'
 
-interface ApiOptions extends RequestInit {
+interface ApiOptions extends Omit<RequestInit, 'cache'> {
   retries?: number
   retryDelay?: number
   timeout?: number
   showErrorToast?: boolean
   showRetryToast?: boolean
+  enableCache?: boolean
+  cacheTime?: number
+  cache?: RequestCache
 }
 
 interface ApiError extends Error {
@@ -17,18 +20,27 @@ interface ApiError extends Error {
   data?: any
 }
 
+interface CacheEntry {
+  data: any
+  timestamp: number
+  expiresAt: number
+}
+
 class ApiClient {
   private baseUrl: string
   private defaultOptions: ApiOptions
+  private cache: Map<string, CacheEntry> = new Map()
 
   constructor(baseUrl = '', defaultOptions: ApiOptions = {}) {
     this.baseUrl = baseUrl
     this.defaultOptions = {
-      retries: 3,
-      retryDelay: 1000,
-      timeout: 10000,
+      retries: 2, // Reduced from 3 for faster failures
+      retryDelay: 500, // Reduced from 1000ms
+      timeout: 8000, // Reduced from 10000ms for faster timeouts
       showErrorToast: true,
       showRetryToast: true,
+      enableCache: false,
+      cacheTime: 300000, // 5 minutes default cache
       ...defaultOptions
     }
   }
@@ -40,8 +52,49 @@ class ApiClient {
   private calculateRetryDelay(attempt: number, baseDelay: number): number {
     // Exponential backoff with jitter
     const exponentialDelay = baseDelay * Math.pow(2, attempt)
-    const jitter = Math.random() * 1000
-    return Math.min(exponentialDelay + jitter, 30000) // Max 30 seconds
+    const jitter = Math.random() * 500 // Reduced jitter for faster retries
+    return Math.min(exponentialDelay + jitter, 15000) // Max 15 seconds (reduced from 30)
+  }
+
+  private getCacheKey(url: string, options: RequestInit): string {
+    const method = options.method || 'GET'
+    const body = options.body || ''
+    return `${method}:${url}:${body}`
+  }
+
+  private getCachedData(cacheKey: string): any | null {
+    const entry = this.cache.get(cacheKey)
+    if (!entry) return null
+    
+    if (Date.now() > entry.expiresAt) {
+      this.cache.delete(cacheKey)
+      return null
+    }
+    
+    return entry.data
+  }
+
+  private setCachedData(cacheKey: string, data: any, cacheTime: number): void {
+    const now = Date.now()
+    this.cache.set(cacheKey, {
+      data,
+      timestamp: now,
+      expiresAt: now + cacheTime
+    })
+    
+    // Clean up expired entries periodically
+    if (this.cache.size > 100) {
+      this.cleanupCache()
+    }
+  }
+
+  private cleanupCache(): void {
+    const now = Date.now()
+    for (const [key, entry] of this.cache.entries()) {
+      if (now > entry.expiresAt) {
+        this.cache.delete(key)
+      }
+    }
   }
 
   private isRetryableError(error: ApiError): boolean {
@@ -65,15 +118,27 @@ class ApiClient {
   ): Promise<T> {
     const mergedOptions = { ...this.defaultOptions, ...options }
     const { 
-      retries = 3, 
-      retryDelay = 1000, 
-      timeout = 10000,
+      retries = 2, 
+      retryDelay = 500, 
+      timeout = 8000,
       showErrorToast = true,
       showRetryToast = true,
+      enableCache = false,
+      cacheTime = 300000,
       ...fetchOptions 
     } = mergedOptions
 
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`
+    
+    // Check cache for GET requests
+    if (enableCache && (!fetchOptions.method || fetchOptions.method === 'GET')) {
+      const cacheKey = this.getCacheKey(url, fetchOptions)
+      const cachedData = this.getCachedData(cacheKey)
+      if (cachedData) {
+        return cachedData
+      }
+    }
+    
     let lastError: ApiError = new Error('Unknown error') as ApiError
 
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -113,6 +178,12 @@ class ApiClient {
 
         const data = await response.json()
         
+        // Cache successful GET requests
+        if (enableCache && (!fetchOptions.method || fetchOptions.method === 'GET')) {
+          const cacheKey = this.getCacheKey(url, fetchOptions)
+          this.setCachedData(cacheKey, data, cacheTime)
+        }
+        
         // Clear any retry toasts on success
         if (attempt > 0) {
           toast.dismiss('api-retry')
@@ -145,12 +216,7 @@ class ApiClient {
     
     if (showErrorToast) {
       const errorMessage = this.getErrorMessage(lastError)
-      toast.error(errorMessage, {
-        action: {
-          label: 'Retry',
-          onClick: (event: React.MouseEvent<HTMLButtonElement>) => this.request(endpoint, options)
-        }
-      })
+      toast.error(errorMessage)
     }
 
     throw lastError

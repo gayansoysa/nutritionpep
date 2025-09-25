@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import { 
   TrendingUp, 
   TrendingDown, 

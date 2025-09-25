@@ -48,7 +48,7 @@ export default function RecipePage({ params }: RecipePageProps) {
       if (!response.ok) {
         if (response.status === 404) {
           toast.error('Recipe not found');
-          router.push('/recipes');
+          router.push('/dashboard/recipes');
           return;
         }
         throw new Error('Failed to fetch recipe');
@@ -131,7 +131,7 @@ export default function RecipePage({ params }: RecipePageProps) {
       if (!response.ok) throw new Error('Failed to delete recipe');
       
       toast.success('Recipe deleted successfully');
-      router.push('/recipes');
+      router.push('/dashboard/recipes');
     } catch (error) {
       console.error('Error deleting recipe:', error);
       toast.error('Failed to delete recipe');
@@ -229,7 +229,7 @@ export default function RecipePage({ params }: RecipePageProps) {
     return (
       <div className="container mx-auto px-4 py-6 text-center">
         <h1 className="text-2xl font-bold mb-4">Recipe not found</h1>
-        <Button onClick={() => router.push('/recipes')}>
+        <Button onClick={() => router.push('/dashboard/recipes')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Recipes
         </Button>
@@ -266,7 +266,7 @@ export default function RecipePage({ params }: RecipePageProps) {
 
           {isOwner && (
             <>
-              <Button variant="outline" size="sm" onClick={() => router.push(`/recipes/${recipe.id}/edit`)}>
+              <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/recipes/${recipe.id}/edit`)}>
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>

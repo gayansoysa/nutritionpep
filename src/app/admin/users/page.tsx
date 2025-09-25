@@ -5,7 +5,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Activity, TrendingUp, UserCheck } from "lucide-react";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import AdminAccessRequired from "@/components/admin/AdminAccessRequired";
 import UsersList from "@/app/admin/components/UsersList";
 import UserActivityDashboard from "@/app/admin/components/UserActivityDashboard";

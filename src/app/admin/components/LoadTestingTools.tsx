@@ -37,7 +37,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 
 ChartJS.register(
   CategoryScale,

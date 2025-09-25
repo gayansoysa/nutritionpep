@@ -135,21 +135,26 @@ class EnhancedExternalAPIService {
       }
     }
 
-    // Fall back to environment variables if database credentials are not available
+    // Fall back to environment variables if database credentials are not available or failed to decrypt
     if (!credentials.api_key && !credentials.client_id) {
+      console.log(`Falling back to environment variables for ${apiName}`);
       switch (apiName) {
         case 'USDA':
           if (process.env.USDA_API_KEY) {
             credentials.api_key = process.env.USDA_API_KEY;
+            console.log(`Using USDA API key from environment`);
           }
           break;
         case 'FatSecret':
           if (process.env.FATSECRET_CLIENT_ID && process.env.FATSECRET_CLIENT_SECRET) {
             credentials.client_id = process.env.FATSECRET_CLIENT_ID;
             credentials.client_secret = process.env.FATSECRET_CLIENT_SECRET;
+            console.log(`Using FatSecret credentials from environment`);
           }
           break;
         // OpenFoodFacts doesn't require credentials
+        case 'OpenFoodFacts':
+          return {}; // Return empty object for OpenFoodFacts (no credentials needed)
       }
     }
 
@@ -210,11 +215,18 @@ class EnhancedExternalAPIService {
     const availableAPIs = defaultOrder.filter(apiName => {
       // Check if API is enabled in database config
       const config = this.apiConfigs.get(apiName);
-      if (config && !config.is_enabled) return false;
+      if (config && !config.is_enabled) {
+        return false;
+      }
       
-      // Check if credentials are available
-      const credentials = this.getAPICredentials(apiName);
-      return credentials !== null || apiName === 'OpenFoodFacts'; // OpenFoodFacts doesn't need credentials
+      // Check if credentials are available - be more lenient with credential checking
+      try {
+        const credentials = this.getAPICredentials(apiName);
+        return credentials !== null || apiName === 'OpenFoodFacts'; // OpenFoodFacts doesn't need credentials
+      } catch (error) {
+        console.warn(`Error checking credentials for ${apiName}, but will still try:`, error);
+        return true; // Still try the API even if credential check fails
+      }
     });
     
     if (preferredAPIs) {

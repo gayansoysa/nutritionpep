@@ -17,7 +17,7 @@ import {
 } from "@radix-ui/react-icons";
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
-import { toast } from "@/lib/utils/toast";
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
