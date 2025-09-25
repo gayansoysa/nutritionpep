@@ -43,7 +43,7 @@ export default async function DashboardLayout({
       <PullToRefreshWrapper>
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-6">
-            <div>
+            <div className="hidden sm:block">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 Dashboard
               </h1>
