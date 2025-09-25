@@ -94,9 +94,6 @@ export default async function RootLayout({
                 <nav className="flex items-center gap-4">
                   {user ? (
                     <>
-                      <a href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-                        Dashboard
-                      </a>
                       <HeaderNetworkStatus />
                       <ProfileDropdownServer />
                     </>
