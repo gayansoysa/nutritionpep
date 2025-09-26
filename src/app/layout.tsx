@@ -9,6 +9,7 @@ import { FloatingNetworkStatus, HeaderNetworkStatus } from "@/components/ui/netw
 import { QueryProvider } from "@/lib/react-query/provider";
 import { LoadingProgress, RouteChangeIndicator } from "@/components/ui/loading-progress";
 import { ProfileDropdownServer } from "@/components/navigation/ProfileDropdownServer";
+import { PWAProvider } from "@/components/pwa/PWAProvider";
 
 import "./globals.css";
 
@@ -67,7 +68,7 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="NutritionPep" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body>
         <QueryProvider>
@@ -77,41 +78,43 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ErrorBoundary>
-            <RouteChangeIndicator />
-            <FloatingNetworkStatus />
-            <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
-              <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
-              <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">N</span>
+            <PWAProvider>
+              <ErrorBoundary>
+              <RouteChangeIndicator />
+              <FloatingNetworkStatus />
+              <div className="min-h-screen flex flex-col bg-gradient-to-br from-background to-muted/20">
+                <header className="border-b border-border/50 bg-background/95 backdrop-blur-lg sticky top-0 z-50">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">N</span>
+                    </div>
+                    <div className="font-semibold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                      NutritionPep
+                    </div>
                   </div>
-                  <div className="font-semibold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                    NutritionPep
-                  </div>
+                  <nav className="flex items-center gap-4">
+                    {user ? (
+                      <>
+                        <HeaderNetworkStatus />
+                        <ProfileDropdownServer />
+                      </>
+                    ) : (
+                      <>
+                        <a href="/login" className="text-sm font-medium hover:text-primary transition-colors">
+                          Login
+                        </a>
+                        <HeaderNetworkStatus />
+                      </>
+                    )}
+                  </nav>
                 </div>
-                <nav className="flex items-center gap-4">
-                  {user ? (
-                    <>
-                      <HeaderNetworkStatus />
-                      <ProfileDropdownServer />
-                    </>
-                  ) : (
-                    <>
-                      <a href="/login" className="text-sm font-medium hover:text-primary transition-colors">
-                        Login
-                      </a>
-                      <HeaderNetworkStatus />
-                    </>
-                  )}
-                </nav>
+                </header>
+                <main className="flex-1">{children}</main>
               </div>
-              </header>
-              <main className="flex-1">{children}</main>
-            </div>
-            <Toaster />
-            </ErrorBoundary>
+              <Toaster />
+              </ErrorBoundary>
+            </PWAProvider>
           </ThemeProvider>
         </QueryProvider>
       </body>
