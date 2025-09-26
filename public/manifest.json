@@ -24,7 +24,7 @@
     },
     {
       "src": "/apple-touch-icon.png",
-      "sizes": "192x192",
+      "sizes": "180x180",
       "type": "image/png"
     },
     {
@@ -94,22 +94,7 @@
       ]
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/dashboard-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Dashboard view showing daily nutrition progress"
-    },
-    {
-      "src": "/screenshots/food-search-mobile.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Food search and logging interface"
-    }
-  ],
+  "screenshots": [],
   "related_applications": [],
   "prefer_related_applications": false,
   "edge_side_panel": {
